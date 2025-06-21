@@ -37,7 +37,7 @@ export default function AccountModal({ account, closeModal }: Props) {
     useEffect(() => {
         setUserInfo((prev) => ({ ...prev, password: '' }));
 
-        if (user && user._id == account._id) {
+        if (user && user.id == account.id) {
             setIsDisabled(false);
             setPasswordDisplay(true)
         } else {
@@ -55,6 +55,8 @@ export default function AccountModal({ account, closeModal }: Props) {
             delete payload.password;
         }
 
+        console.log('payload' , payload);
+        
         dispatch(updateAccount(payload));
         closeModal();
     }
@@ -76,7 +78,7 @@ export default function AccountModal({ account, closeModal }: Props) {
 
                 <div className="col-span-1">
                     <Label>Phone</Label>
-                    <Input type="text" name='phone' onChange={changeHandler} placeholder="phone number" value={userInfo.phone} disabled={isDisabled} required />
+                    <Input type="text" name='phone' onChange={changeHandler} placeholder="phone number" value={userInfo.phone} disabled={isDisabled} />
                 </div>
 
                 <div className="col-span-1">
@@ -96,7 +98,7 @@ export default function AccountModal({ account, closeModal }: Props) {
                             setUserInfo(prev => ({ ...prev, role: value }))
                         }}
                         required={true}
-                        disabled={user?.role !== 'super'}
+                        disabled={user?.role !== 'super' || (user.role === 'super' && user.id == account.id)}
                     />
                 </div>
                 {passwordDisplay &&

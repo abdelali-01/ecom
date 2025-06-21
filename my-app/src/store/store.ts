@@ -2,22 +2,28 @@ import { configureStore } from "@reduxjs/toolkit"
 import authReducer from './auth/authSlice'
 import errorReducer from './error/errorSlice'
 import alertReducer from './alert/alertSlice';
-import notebookReducer from './notebooks/notebookSlice';
 import accountReducer from './accounts/accountsSlice';
-import cashRegisterReducer from './cash-register/cashRegisterSlice';
-import trodatRegisterReducer from './trodat-register/trodatRegisterSlice';
 import calendarReducer from './calendar/calendarSlice';
+import ordersReducer from './orders/orderSlice';
+import productReducer from './products/productSlice';
+import offersReducer from './offers/offerSlice';
+import wilayasReducer from './wilayas/wilayaSlice';
+import cartReducer from './cart/cartSlice';
+import statisticsReducer from './statistics/statisticsSlice';
 
 export const store = configureStore({
     reducer : {
         auth : authReducer ,
         error : errorReducer ,
         alert : alertReducer ,
-        notebooks : notebookReducer ,
         accounts : accountReducer,
-        cashRegister : cashRegisterReducer ,
-        trodatRegister : trodatRegisterReducer ,
         calendar : calendarReducer ,
+        orders : ordersReducer,
+        products : productReducer,
+        offers : offersReducer ,
+        wilayas : wilayasReducer,
+        cart: cartReducer,
+        statistics: statisticsReducer,
     }
 });
 

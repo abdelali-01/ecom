@@ -13,7 +13,7 @@ export default function AuthInitializer() {
 
     useEffect(()=>{
         dispatch(checkIfLoggedIn(pathname , router));
-    },[dispatch , pathname , router]);
+    },[dispatch]);
     
     return null
 }

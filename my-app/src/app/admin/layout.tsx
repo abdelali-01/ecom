@@ -8,7 +8,7 @@ import AppSidebar from "@/layout/AppSidebar";
 import Backdrop from "@/layout/Backdrop";
 import { RootState } from "@/store/store";
 import { usePathname, useRouter } from "next/navigation";
-import React, { useEffect } from "react";
+import React from "react";
 import { useSelector } from "react-redux";
 
 export default function AdminLayout({
@@ -21,22 +21,14 @@ export default function AdminLayout({
   const router = useRouter();
   const pathname = usePathname();
 
-  useEffect(() => {
-    const check = setTimeout(() => {
-      if (!user || !user.isAdmin) {
-        router.push('/signin')
-      }
-    }, 5000);
-    return () => clearTimeout(check);
-  }, [user, router]);
 
-  useEffect(()=>{
-    if(user && user.role === 'manager'){
-      if(pathname.startsWith('/notebooks') || pathname.startsWith('/cash-register') || pathname === '/admin' || pathname === '/accounts' || pathname === '/signup'){
-        router.push('/admin/trodat-orders');
-      }
-    }
-  },[pathname , user , router]);
+  // useEffect(()=>{
+  //   if(user && user.role === 'manager'){
+  //     if(pathname.startsWith('/notebooks') || pathname.startsWith('/cash-register') || pathname === '/admin' || pathname === '/accounts' || pathname === '/signup'){
+  //       router.push('/admin/trodat-orders');
+  //     }
+  //   }
+  // },[pathname , user , router]);
 
   // Dynamic class for main content margin based on sidebar state
   const mainContentMargin = isMobileOpen
@@ -45,7 +37,7 @@ export default function AdminLayout({
       ? "lg:ml-[290px]"
       : "lg:ml-[90px]";
 
-  if (!user || !user.isAdmin) return null;
+  if (!user) return null;
   return (
     <div className="min-h-screen xl:flex">
       {/* Sidebar and Backdrop */}

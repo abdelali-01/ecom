@@ -9,13 +9,19 @@ import { createSlice } from "@reduxjs/toolkit";
 //         role : 'super',
 //  }
 
+// {
+//     username : 'guest' ,
+//     email : 'guest@gmail.com' ,
+//     phone : '' ,
+//     isAdmin : true ,
+//     role : 'super' , // default role
+// } 
+
 const initialState : {
     user : User | null;
-    isAdmin : boolean ;
     isFetching :boolean 
 } = {
-    user : null ,
-    isAdmin : true ,
+    user :null,
     isFetching : false ,
 }
 
@@ -28,7 +34,6 @@ const authSlice = createSlice({
         },
         setUser : (state , action) => {
             state.user = action.payload ;
-            state.isAdmin = action.payload.isAdmin ;
             state.isFetching = false
         },
     }

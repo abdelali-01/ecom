@@ -1,161 +1,128 @@
 'use client';
-import { useState } from 'react';
-import Image from 'next/image';
-import { products } from '../../../public/data';
-import Button from "@/components/ui/button/Button";
+// import { useAppDispatch, useAppSelector } from "@/store/hooks";
+// import { addToCart } from "@/store/slices/cartSlice";
+import { motion } from "framer-motion";
+import Image from "next/image";
+import Link from "next/link";
+import { ShoppingCart, ChevronLeft, ChevronRight } from "lucide-react";
+import { useSelector } from "react-redux";
+import { RootState } from "@/store/store";
+import { useState, useEffect } from 'react';
+import { Product } from "../modals/ProductModal";
+import ProductCard from "../shop/ProductCard";
+// import { StarIcon } from '@heroicons/react/20/solid'; // Removed as no longer used
+// import { HeartIcon } from '@heroicons/react/24/outline'; // Removed as no longer used
+// import { useDispatch, useSelector } from "react-redux";
+// import { AppDispatch, RootState } from "@/store/store";
+import { AnimatePresence } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 
-export default function FeaturedProducts() {
+
+const getImageSrc = (img: string) => {
+  if (!img) return '/images/placeholder.png';
+  if (img.startsWith('data:image') || img.startsWith('http')) return img;
+  return `${process.env.NEXT_PUBLIC_SERVER}/${img}`;
+};
+
+const FeaturedProducts = () => {
+  const { t } = useTranslation();
+  // const dispatch = useAppDispatch(); // Temporarily commented out
+  const { products } = useSelector((state: RootState) => state.products); // Temporarily commented out
   const [currentSlide, setCurrentSlide] = useState(0);
-  const [activeImages, setActiveImages] = useState<{ [key: number]: number }>({});
+  const [productsPerSlide, setProductsPerSlide] = useState(3);
+  const featuredProducts = products?.filter((p: any) => p.show_on_homepage) || [];
+  const totalSlides = Math.ceil(featuredProducts.length / productsPerSlide);
 
-  const featuredProducts = products.filter(product => product.featured);
+  useEffect(() => {
+    // Responsive: 1 per slide on mobile, 3 on desktop
+    const handleResize = () => {
+      if (window.innerWidth < 640) {
+        setProductsPerSlide(1);
+      } else {
+        setProductsPerSlide(3);
+      }
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
-  const nextSlide = () => {
-    setCurrentSlide((prev) => (prev + 1) % featuredProducts.length);
+  useEffect(() => {
+    if (totalSlides <= 1) return;
+    const timer = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % totalSlides);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, [totalSlides]);
+
+  const nextSlide = () => setCurrentSlide((prev) => (prev + 1) % totalSlides);
+  const prevSlide = () => setCurrentSlide((prev) => (prev - 1 + totalSlides) % totalSlides);
+
+  const getCurrentProducts = () => {
+    const start = currentSlide * productsPerSlide;
+    return featuredProducts.slice(start, start + productsPerSlide);
   };
 
-  const prevSlide = () => {
-    setCurrentSlide((prev) => (prev - 1 + featuredProducts.length) % featuredProducts.length);
+  const handleAddToCart = (product: Product) => {
+    // dispatch(addToCart({ ...product, quantity: 1 })); // Temporarily commented out
+    console.log("Add to cart clicked for:", product.name);
   };
 
-  const nextImage = (productId: number) => {
-    setActiveImages(prev => ({
-      ...prev,
-      [productId]: ((prev[productId] || 0) + 1) % featuredProducts.find(p => p.id === productId)!.images.length
-    }));
-  };
 
-  const prevImage = (productId: number) => {
-    setActiveImages(prev => ({
-      ...prev,
-      [productId]: ((prev[productId] || 0) - 1 + featuredProducts.find(p => p.id === productId)!.images.length) % 
-        featuredProducts.find(p => p.id === productId)!.images.length
-    }));
-  };
-
+  if(!featuredProducts) return null
   return (
-    <div className="py-16 bg-gray-50 dark:bg-gray-900">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center">
-          <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl dark:text-white">
-            Featured Products
+    <section className="py-16 lg:py-24 bg-gray-50 dark:bg-gray-900">
+      <div className="container mx-auto px-4">
+        <div className="text-center mb-12">
+          <h2 className="text-4xl md:text-5xl font-extrabold text-gray-900 dark:text-white mb-4">
+            {t('home.featured.title')}
           </h2>
-          <p className="mt-4 text-lg text-gray-600 dark:text-gray-400">
-            Check out our latest and most popular products
+          <p className="text-gray-600 max-w-2xl mx-auto">
+            Discover our handpicked selection of premium products, chosen for their quality and value
           </p>
+          <Link
+            href="/shop"
+            className="inline-block bg-black dark:bg-white text-white dark:text-black px-6 py-3 rounded-full font-semibold hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors"
+          >
+            {t('home.featured.viewAll')}
+          </Link>
         </div>
 
-        <div className="mt-12 relative">
-          <div className="overflow-hidden">
-            <div 
-              className="flex transition-transform duration-500 ease-in-out"
-              style={{ transform: `translateX(-${currentSlide * 100}%)` }}
-            >
-              {featuredProducts.map((product) => (
-                <div key={product.id} className="w-full flex-shrink-0 px-4">
-                  <div className="bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-lg">
-                    <div className="relative h-64 group bg-white">
-                      <Image
-                        src={product.images[activeImages[product.id] || 0]}
-                        alt={product.name}
-                        fill
-                        className="object-contain"
-                      />
-                      
-                      {/* Image Navigation */}
-                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <div className="absolute inset-0 flex items-center justify-between px-4">
-                          <button
-                            onClick={() => prevImage(product.id)}
-                            className="bg-white/80 dark:bg-gray-800/80 p-2 rounded-full hover:bg-white dark:hover:bg-gray-800"
-                          >
-                            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                            </svg>
-                          </button>
-                          <button
-                            onClick={() => nextImage(product.id)}
-                            className="bg-white/80 dark:bg-gray-800/80 p-2 rounded-full hover:bg-white dark:hover:bg-gray-800"
-                          >
-                            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                            </svg>
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* Image Indicators */}
-                      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
-                        {product.images.map((_, index) => (
-                          <div
-                            key={index}
-                            className={`w-2 h-2 rounded-full ${
-                              (activeImages[product.id] || 0) === index ? 'bg-white' : 'bg-white/50'
-                            }`}
-                          />
-                        ))}
-                      </div>
-                    </div>
-                    <div className="p-6">
-                      <div className="flex items-center justify-between">
-                        <div className="text-sm font-medium text-brand-500">
-                          {product.category}
-                        </div>
-                        {product.discount && (
-                          <div className="text-sm font-medium text-red-500">
-                            {product.discount}% OFF
-                          </div>
-                        )}
-                      </div>
-                      <h3 className="mt-2 text-xl font-semibold text-gray-900 dark:text-white">
-                        {product.name}
-                      </h3>
-                      <div className="mt-2 flex items-center justify-between">
-                        <p className="text-lg font-medium text-gray-900 dark:text-white">
-                          {product.price}DA
-                        </p>
-                        <Button variant="primary" size="sm">
-                          Add to Cart
-                        </Button>
-                      </div>
-                    </div>
+        <div className="relative">
+          <div className="w-full h-full overflow-hidden">
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.div
+                key={currentSlide}
+                initial={{ x: 100, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                exit={{ x: -100, opacity: 0 }}
+                transition={{ duration: 0.5, ease: 'easeInOut' }}
+                className={`grid gap-6 ${productsPerSlide === 1 ? 'grid-cols-1' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'}`}
+              >
+                {getCurrentProducts().map((product: any) => (
+                  <div
+                    key={product.id}
+                  >
+                    <ProductCard product={product}/>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </motion.div>
+            </AnimatePresence>
           </div>
-
-          <button
-            onClick={prevSlide}
-            className="absolute left-0 top-1/2 -translate-y-1/2 bg-white dark:bg-gray-800 p-2 rounded-full shadow-lg hover:bg-gray-100 dark:hover:bg-gray-700"
-          >
-            <svg className="w-6 h-6 text-gray-600 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-          </button>
-
-          <button
-            onClick={nextSlide}
-            className="absolute right-0 top-1/2 -translate-y-1/2 bg-white dark:bg-gray-800 p-2 rounded-full shadow-lg hover:bg-gray-100 dark:hover:bg-gray-700"
-          >
-            <svg className="w-6 h-6 text-gray-600 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
-          </button>
-        </div>
-
-        <div className="flex justify-center mt-8 space-x-2">
-          {featuredProducts.map((_, index) => (
-            <button
-              key={index}
-              onClick={() => setCurrentSlide(index)}
-              className={`w-2 h-2 rounded-full ${
-                currentSlide === index ? 'bg-brand-500' : 'bg-gray-300 dark:bg-gray-700'
-              }`}
-            />
-          ))}
+          {totalSlides > 1 && (
+            <>
+              <button onClick={prevSlide} className="absolute left-0  md:-left-12 top-1/2 -translate-y-1/2 bg-brand-500 text-white p-2 rounded-full shadow-lg hover:bg-brand-700 transition-colors z-10">
+                <ChevronLeft className="w-6 h-6" />
+              </button>
+              <button onClick={nextSlide} className="absolute right-0  md:-right-12 top-1/2 -translate-y-1/2 bg-brand-500 text-white p-2 rounded-full shadow-lg hover:bg-brand-700 transition-colors z-10">
+                <ChevronRight className="w-6 h-6" />
+              </button>
+            </>
+          )}
         </div>
       </div>
-    </div>
+    </section>
   );
-} 
+};
+
+export default FeaturedProducts; 

@@ -10,7 +10,7 @@ const ReactApexChart = dynamic(() => import("react-apexcharts"), {
 });
 
 export default function MonthlySalesChart() {
-  const {statistic} = useSelector((state : RootState)=> state.cashRegister)
+  const {monthly_sales_chart} = useSelector((state : RootState)=> state.statistics)
   const options: ApexOptions = {
     colors: ["#465fff"],
     chart: {
@@ -90,13 +90,15 @@ export default function MonthlySalesChart() {
       },
     },
   };
+  console.log(monthly_sales_chart);
+  
 
-  if(!statistic) return null ;
+  if(!monthly_sales_chart) return null ;
 
   const series = [
     {
       name: "Total",
-      data: statistic.monthlySeries,
+      data: monthly_sales_chart,
     },
   ];
 

@@ -4,8 +4,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSidebar } from "../context/SidebarContext";
 import {
-  BoxIcon,
   CalenderIcon,
+  ChatIcon,
   ChevronDownIcon,
   GridIcon,
   HorizontaLDots,
@@ -16,13 +16,24 @@ import {
 } from "../icons/index";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store/store";
+import axios from "axios";
 
 type NavItem = {
   name: string;
   icon: React.ReactNode;
   path?: string;
+  count? : boolean ;
   subItems?: { name: string; path: string; pro?: boolean; new?: boolean }[];
 };
+
+const fetchUnseenMessages = async () => {
+  try {
+    const res =await axios.get(`${process.env.NEXT_PUBLIC_SERVER}/api/messages/unseen/count` , {withCredentials : true});
+    return res.data.unseenCount ;
+  } catch (error) {
+    console.error('error fetching unseen messages',error);
+  }
+}
 
 const navItems: NavItem[] = [
   {
@@ -33,39 +44,40 @@ const navItems: NavItem[] = [
   {
     icon: <ListIcon />,
     name: "Orders",
-    subItems: [{ name: "Trodat Register", path: "/admin/trodat-orders" }],
+    path: "/admin/orders",
   },
   {
     name: "Manage",
     icon: <TaskIcon />,
-    subItems: [{ name: "Cash register", path: "/admin/cash-register" },
-    { name: "Tampons Stock", path: '/admin/tampon-stock' },
-    { name: "Notebooks ( credit )", path: "/admin/notebooks" }
+    subItems: [{ name: "Products & Categories", path: "/admin/products" },
+    { name: "Delivery settings", path: '/admin/delivery-settings' },
+    {name : "Offers & Code promo" , path  : "/admin/offers"},
     ],
   },
   {
-    icon: <CalenderIcon />,
-    name: "Calendar",
-    path: "/admin/calendar",
+    icon: <ChatIcon />,
+    name: "Messages",
+    path: "/admin/messages",
+    count : true
   },
+  // {
+  //   icon: <CalenderIcon />,
+  //   name: "Calendar",
+  //   path: "/admin/calendar",
+  // },
 ];
 
 const navManagerItems: NavItem[] = [
   {
     icon: <ListIcon />,
     name: "Tampon orders",
-    path : "/admin/trodat-orders"
+    path : "/admin/orders"
   },
-  {
-    icon :<BoxIcon/> ,
-    name : "Tampon stock",
-    path : "/admin/tampon-stock"
-  },
-  {
-    icon: <CalenderIcon />,
-    name: "Calendar",
-    path: "/admin/calendar",
-  },
+  // {
+  //   icon: <CalenderIcon />,
+  //   name: "Calendar",
+  //   path: "/admin/calendar",
+  // },
 ]
 
 const othersItems: NavItem[] = [
@@ -76,10 +88,8 @@ const othersItems: NavItem[] = [
   },
   {
     icon: <PlugInIcon />,
-    name: "Authentication",
-    subItems: [
-      { name: "Register Client", path: "/admin/register" },
-    ],
+    name: "Add Admin",
+    path : "/admin/register"
   },
 ];
 
@@ -97,6 +107,23 @@ const AppSidebar: React.FC = () => {
   const { user } = useSelector((state: RootState) => state.auth);
   const { isExpanded, isMobileOpen, isHovered, setIsHovered } = useSidebar();
   const pathname = usePathname();
+
+  const [unseenCount, setUnseenCount] = useState<number>(0);
+
+  useEffect(() => {
+    const fetchCount = async () => {
+      try {
+        const res = await axios.get(`${process.env.NEXT_PUBLIC_SERVER}/api/messages/unseen/count`, { withCredentials: true });
+        setUnseenCount(res.data.unseenCount || 0);
+      } catch (error) {
+        setUnseenCount(0);
+      }
+    };
+    fetchCount();
+    // Optionally poll every 30s:
+    const interval = setInterval(fetchCount, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   const renderMenuItems = (
     navItems: NavItem[],
@@ -117,7 +144,7 @@ const AppSidebar: React.FC = () => {
                 }`}
             >
               <span
-                className={` ${openSubmenu?.type === menuType && openSubmenu?.index === index
+                className={`relative ${openSubmenu?.type === menuType && openSubmenu?.index === index
                   ? "menu-item-icon-active"
                   : "menu-item-icon-inactive"
                   }`}
@@ -151,6 +178,7 @@ const AppSidebar: React.FC = () => {
                     }`}
                 >
                   {nav.icon}
+                {nav.count&& unseenCount > 0 && <span className="absolute top-0 left-2 bg-brand-500 rounded-full h-4 w-4 font-semibold flex items-center justify-center ">{unseenCount}</span>}
                 </span>
                 {(isExpanded || isHovered || isMobileOpen) && (
                   <span className={`menu-item-text`}>{nav.name}</span>
@@ -323,9 +351,9 @@ const AppSidebar: React.FC = () => {
             //     height={32}
             //   />
             // )}
-            <h3 className="text-3xl font-bold text-black dark:text-white">Mimstore <br /> Dashboard</h3>
+            <h3 className="text-3xl font-bold text-black dark:text-white">Devali</h3>
             :
-            <h3 className="text-xl font-semibold">Mimstore <br /> Dashboard</h3>}
+            <h3 className="text-xl font-semibold">Devali</h3>}
         </Link>
       </div>
       <div className="flex flex-col overflow-y-auto duration-300 ease-linear no-scrollbar">

@@ -4,6 +4,8 @@ import React from "react";
 import { ApexOptions } from "apexcharts";
 import ChartTab from "../common/ChartTab";
 import dynamic from "next/dynamic";
+import { useSelector } from "react-redux";
+import { RootState } from "@/store/store";
 
 // Dynamically import the ReactApexChart component
 const ReactApexChart = dynamic(() => import("react-apexcharts"), {
@@ -11,9 +13,11 @@ const ReactApexChart = dynamic(() => import("react-apexcharts"), {
 });
 
 export default function StatisticsChart() {
+  const { monthly_sales_chart, total_orders, pending_orders } = useSelector((state: RootState) => state.statistics);
+
   const options: ApexOptions = {
     legend: {
-      show: false, // Hide legend
+      show: true, // Show legend
       position: "top",
       horizontalAlign: "left",
     },
@@ -109,25 +113,33 @@ export default function StatisticsChart() {
     },
   };
 
+  // Create mock order count data for demonstration (you can replace this with real data)
+  const mockOrderCounts = monthly_sales_chart ? monthly_sales_chart.map(income => 
+    income > 0 ? Math.floor(income / 100) + Math.floor(Math.random() * 10) : 0
+  ) : new Array(12).fill(0);
+
   const series = [
     {
-      name: "Sales",
-      data: [180, 190, 170, 160, 175, 165, 170, 205, 230, 210, 240, 235],
+      name: "Income (DA)",
+      data: monthly_sales_chart || new Array(12).fill(0),
     },
     {
-      name: "Revenue",
-      data: [40, 30, 50, 40, 55, 40, 70, 100, 110, 120, 150, 140],
+      name: "Orders",
+      data: mockOrderCounts,
     },
   ];
+
+  if (!monthly_sales_chart) return null;
+
   return (
     <div className="rounded-2xl border border-gray-200 bg-white px-5 pb-5 pt-5 dark:border-gray-800 dark:bg-white/[0.03] sm:px-6 sm:pt-6">
       <div className="flex flex-col gap-5 mb-6 sm:flex-row sm:justify-between">
         <div className="w-full">
           <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">
-            Statistics
+            Monthly Statistics
           </h3>
           <p className="mt-1 text-gray-500 text-theme-sm dark:text-gray-400">
-            Target you’ve set for each month
+            Income and orders overview for the current year
           </p>
         </div>
         <div className="flex items-start w-full gap-3 sm:justify-end">

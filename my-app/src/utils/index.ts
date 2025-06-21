@@ -6,6 +6,14 @@ export function formatDateToISO(date: string | Date): string {
   return date.split('T')[0];
 }
 
+export function formatDateToISOWithTime(date: string | Date): string {
+  if(date instanceof Date){
+    return date.toISOString();
+  }
+
+  return date.split('T')[0] + ' at ' + date.split('T')[1].split(':').slice(0, 2).join(':');
+}
+
 export function getNotebookStatus(total: number, prePayment: number) {
   if (total === 0 && prePayment === 0) {
     return { label: "still", color: "light" };

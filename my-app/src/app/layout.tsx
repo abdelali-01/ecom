@@ -1,4 +1,4 @@
-import { Outfit } from 'next/font/google';
+import { Outfit, El_Messiri  } from 'next/font/google';
 import './globals.css';
 
 import { SidebarProvider } from '@/context/SidebarContext';
@@ -8,9 +8,14 @@ import AuthInitializer from './AuthInitializer';
 import ErrorChecking from './ErrorChecking';
 import AlertPlayer from './AlertPlayer';
 import { Metadata } from 'next';
+import I18nProvider from './I18nProvider';
 
 const outfit = Outfit({
   subsets: ["latin"],
+});
+
+const elMessiri = El_Messiri({
+  subsets: ["arabic"],
 });
 
 export const metadata: Metadata = {
@@ -30,12 +35,16 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${outfit.className} dark:bg-gray-900`}>
         <StoreProvider>
-          <AlertPlayer/>
-          <ErrorChecking/>
-          <AuthInitializer/>
-          <ThemeProvider>
-            <SidebarProvider>{children}</SidebarProvider>
-          </ThemeProvider>
+          <I18nProvider>
+            <AlertPlayer/>
+            <ErrorChecking/>
+            <AuthInitializer/>
+            <ThemeProvider>
+              <SidebarProvider>
+                  {children}
+              </SidebarProvider>
+            </ThemeProvider>
+          </I18nProvider>
         </StoreProvider>
       </body>
     </html>

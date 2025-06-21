@@ -5,6 +5,7 @@ import { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.share
 import { setError } from '../error/errorSlice';
 import { User } from '@/components/auth/SignUpForm';
 import { setSuccessAlert } from '../alert/alertSlice';
+import { fetchAccounts } from '../accounts/accountHandler';
 
 const server = process.env.NEXT_PUBLIC_SERVER;
 
@@ -15,10 +16,9 @@ axios.defaults.headers.common['Content-Type'] = 'application/json';
 export const registerUser = (user: User, clearFrom: () => void) => async (dispatch: AppDispatch) => {
     dispatch(setIsFeching(true));
     try {
-        const res = await axios.post(`${server}/api/auth/signup`, user, { withCredentials: true });
+        const res = await axios.post(`${server}/api/auth/register`, user, { withCredentials: true });
         if (res) {
-            console.log('client registred');
-            dispatch(setSuccessAlert('Your client is registred successfully'))
+            dispatch(setSuccessAlert('Your admin is registred successfully'))
             clearFrom();
 
             setTimeout(() => {
@@ -26,7 +26,7 @@ export const registerUser = (user: User, clearFrom: () => void) => async (dispat
             }, 3000);
         }
 
-    } catch (error) {
+    } catch (error: any) {
         console.log('Error during registring the user ', error);
         const errorDetails = {
             status: error.response?.data.status || 400,
@@ -43,11 +43,9 @@ export const loggedIn = (user: { email: string, password: string }, router: AppR
         const userLogged = res.data?.user;
         if (userLogged) {
             dispatch(setUser(userLogged));
-            if (userLogged.isAdmin)
-                router.push('/admin')
-            else router.push('/')
+            router.push('/admin')
         }
-    } catch (error) {
+    } catch (error: any) {
         console.log('error during the login', error);
         const errorDetails = {
             status: error.response?.data.status || 400,
@@ -61,29 +59,36 @@ export const loggedIn = (user: { email: string, password: string }, router: AppR
 
 export const checkIfLoggedIn = (pathname: string, router: AppRouterInstance) => async (dispatch: AppDispatch) => {
     try {
-        const res = await axios.get(`${server}/api/auth`, { withCredentials: true });
+        const res = await axios.get(`${server}/api/auth/me`, { withCredentials: true });
         const userLogged = res.data?.user;
         if (userLogged) {
             dispatch(setUser(userLogged));
-            if (pathname === '/signin' || pathname === '/') {
-                if (userLogged.isAdmin) router.push('/admin')
-                else router.push('/signin');
+            // Only redirect to admin if currently on signin page
+            if (pathname === '/signin') {
+                router.push('/admin');
+            }
+        } else {
+            // If not logged in and on a protected page, redirect to signin
+            if (pathname.startsWith('/admin')) {
+                router.push('/signin');
             }
         }
-
-    } catch (error) {
+    } catch (error: any) {
         console.log('error during check if logged in', error);
+        // If auth check fails and on a protected page, redirect to signin
+        if (pathname.startsWith('/admin')) {
+            router.push('/signin');
+        }
     }
 }
 
-export const getUser = (userId: string | undefined) => async (dispatch: AppDispatch) => {
-    if (!userId) return;
+export const getUser = () => async (dispatch: AppDispatch) => {
     try {
-        const res = await axios.get(`${server}/api/auth/${userId}`, { withCredentials: true });
+        const res = await axios.get(`${server}/api/auth/me`, { withCredentials: true });
 
         if (res)
-            dispatch(setUser(res.data))
-    } catch (error) {
+            dispatch(setUser(res.data.user))
+    } catch (error: any) {
         console.log('error during getting the user', error);
         dispatch(setError({
             message: error.response?.data.message || error.message
@@ -92,17 +97,18 @@ export const getUser = (userId: string | undefined) => async (dispatch: AppDispa
 }
 
 export const updateAccount = (userInfo: User) => async (dispatch: AppDispatch) => {
+    console.log(userInfo);
+    
     try {
-        await axios.put(`${server}/api/auth/${userInfo._id}`, userInfo, { withCredentials: true });
+        await axios.put(`${server}/api/auth/${userInfo.id}`, userInfo, { withCredentials: true });
 
         dispatch(setSuccessAlert('Your Account has been updated successfully'));
-        dispatch(getUser(userInfo._id));
+        dispatch(getUser());
+        dispatch(fetchAccounts());
 
-        setTimeout(() => {
-            dispatch(setSuccessAlert(null));
-        }, 3000);
+    
 
-    } catch (error) {
+    } catch (error: any) {
         console.log('error during updating the account', error);
         dispatch(setError({
             message: error.response?.data.message || error.message
@@ -115,9 +121,10 @@ export const loggedOut = (router: AppRouterInstance) => async (dispatch: AppDisp
         const res = await axios.post(`${server}/api/auth/logout`, {}, { withCredentials: true });
 
         if (res.statusText === 'OK') {
+            dispatch(setUser(null)); // Clear user state
             router.push('/signin')
         }
-    } catch (error) {
+    } catch (error: any) {
         console.log('error during the login', error);
         const errorDetails = {
             status: error.response?.data.status,
@@ -133,7 +140,7 @@ export const SendEmailReset = (email: string, setState: () => void) => async (di
     try {
         await axios.post(`${server}/api/auth/reset-password`, { email }, { withCredentials: true });
         setState();
-    } catch (error) {
+    } catch (error: any) {
         dispatch(setError({
             message: error.response?.data.message || error.message
         }))
@@ -142,17 +149,15 @@ export const SendEmailReset = (email: string, setState: () => void) => async (di
     }
 }
 
-export const sendPasswordResset = (password: string, token: string , router : AppRouterInstance) => async (dispatch: AppDispatch) => {
+export const sendPasswordResset = (password: string, token: string, router: AppRouterInstance) => async (dispatch: AppDispatch) => {
     try {
-        await axios.post(`${server}/api/auth/reset-password/${token}` , {password} , {withCredentials : true});
+        await axios.post(`${server}/api/auth/reset-password/${token}`, { password }, { withCredentials: true });
 
         dispatch(setSuccessAlert('Your password has been updated'));
         router.push('/signin');
-        
-        setTimeout(() => {
-            dispatch(setSuccessAlert(null));
-        }, 3000);
-    } catch (error) {
+
+    
+    } catch (error: any) {
         dispatch(setError({
             message: error.response?.data.message || error.message
         }))

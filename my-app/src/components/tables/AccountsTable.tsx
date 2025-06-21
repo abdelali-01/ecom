@@ -11,31 +11,22 @@ import AccountModal from '../example/ModalExample/AccountModal';
 import { useSearch } from '@/context/SearchContext';
 import { filterItems } from '@/utils';
 import { useDeleteModal } from '@/context/DeleteModalContext';
+import Loader from '../ui/load/Loader';
 
 export default function AccountsTable() {
     const dispatch = useDispatch<AppDispatch>();
     const { accounts } = useSelector((state: RootState) => state.accounts);
+    const {user} = useSelector((state: RootState)=> state.auth);
+
 
     const { isOpen, openModal, closeModal, selectedItem } = useModal();
     const {openModal : openDeleteModal} = useDeleteModal();
-
 
     useEffect(() => {
         dispatch(fetchAccounts())
     }, [dispatch]);
 
-
-    // search handle
-    const { search } = useSearch();
-    const [filtredAccounts, setFiltredAccounts] = useState(accounts);
-    useEffect(() => {
-        if (accounts) {
-            const result = filterItems(accounts, search);
-            setFiltredAccounts(result)
-        }
-    }, [search, accounts])
-
-    if (!filtredAccounts) return <div>Loading ...</div>
+    if(!accounts) return <Loader/>
     return (
         <div className="max-w-full overflow-x-auto">
             <div className="min-w-[1000px]">
@@ -77,14 +68,14 @@ export default function AccountsTable() {
                         </TableHeader>
 
                         <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
-                            {filtredAccounts.map(account => (
-                                <TableRow key={account._id}
+                            {accounts.map(account => (
+                                <TableRow key={account.id}
                                 >
                                     <TableCell className="px-4 py-3 text-gray-500 text-start font-semibold dark:text-gray-400">
                                         {account.username}
                                     </TableCell>
                                     <TableCell className="px-4 py-3 text-gray-500 text-start font-semibold dark:text-gray-400">
-                                        {account.phone}
+                                        {account.phone || '-'}
                                     </TableCell>
                                     <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
                                         {account.email}
@@ -96,7 +87,7 @@ export default function AccountsTable() {
 
                                     <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400 flex items-center gap-2">
                                         <PencilSquareIcon className='size-7 cursor-pointer text-brand-500' onClick={() => openModal(account)} />
-                                        <TrashIcon className="size-7 cursor-pointer text-brand-500" onClick={()=> openDeleteModal(account._id , (id)=> dispatch(deleteAccounts(id)))}/>
+                                        {user?.id != account.id && user?.role === 'super' &&<TrashIcon className="size-7 cursor-pointer text-brand-500" onClick={()=> openDeleteModal(account.id , (id)=> dispatch(deleteAccounts(id)))}/>}
                                     </TableCell>
                                 </TableRow>
                             ))}

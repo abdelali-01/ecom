@@ -1,51 +1,147 @@
-import { useTheme } from '@/context/ThemeContext';
-import Link from 'next/link'
-import React from 'react'
+'use client';
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
+import Image from 'next/image';
+import { useDispatch, useSelector } from 'react-redux';
+import { AppDispatch, RootState } from '@/store/store';
+import { ShoppingCartIcon, Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
+import { fetchProducts } from '@/store/products/productHandler';
+import { ThemeToggleButton } from '@/components/common/ThemeToggleButton';
+import { useCartSidebar } from '@/context/CartSidebarContext';
+import { useTranslation } from 'react-i18next';
+import { GlobeAltIcon } from '@heroicons/react/24/outline';
 
 export default function Navbar() {
-  const { toggleTheme } = useTheme();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const dispatch = useDispatch<AppDispatch>();
+  const { openCart } = useCartSidebar();
+  const items = useSelector((state: RootState) => state.cart.items);
+  const cartItemsCount = items.reduce((total, item) => total + item.cartQuantity, 0);
+  const { i18n, t } = useTranslation();
+
+  const navigation = [
+    { name: t('nav.home'), href: '/' },
+    { name: t('nav.shop'), href: '/shop' },
+    { name: t('nav.about'), href: '/about' },
+    { name: t('nav.contact'), href: '/contact' },
+  ];
+
+  const changeLanguage = (lng: string) => {
+    i18n.changeLanguage(lng);
+  };
+
+  // Fetch categories on component mount
+  useEffect(() => {
+    dispatch(fetchProducts());
+  }, [dispatch]);
+
   return (
-    <nav className="fixed top-0 z-50 w-full bg-white border-b border-gray-200 dark:bg-gray-900 dark:border-gray-800">
-    <div className="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
+    <nav className="bg-white dark:bg-gray-900 shadow-sm sticky top-0 z-50">
+      <div className="container mx-auto px-4">
       <div className="flex items-center justify-between h-16">
-        <div className="flex items-center">
-          <Link href="/" className="flex items-center">
-            <h1 className="text-xl font-semibold text-gray-800 dark:text-white">Mimstore</h1>
+          {/* Logo */}
+          <Link href="/" className="flex-shrink-0">
+            <h3 className="text-xl md:text-3xl dark:text-white">Devali</h3>
           </Link>
+
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center space-x-8">
+            {navigation.map((item) => (
+              <Link
+                key={item.name}
+                href={item.href}
+                className="text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
+              >
+                {item.name}
+              </Link>
+            ))}
+            
         </div>
         
-        <div className="flex items-center gap-4">
-          <Link href="/shop" className="text-sm font-medium text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white">
-            Shop
-          </Link>
-          <Link href="/about" className="text-sm font-medium text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white">
-            About
-          </Link>
-          <Link href="/contact" className="text-sm font-medium text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white">
-            Contact
-          </Link>
-          <button
-            onClick={toggleTheme}
-            className="p-2 text-gray-500 transition-colors rounded-lg hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
-          >
-            <svg
-              className="hidden w-5 h-5 dark:block"
-              fill="currentColor"
-              viewBox="0 0 20 20"
+          {/* Right Side Icons */}
+          <div className="flex items-center space-x-4">
+            {/* Desktop Language and Theme Switchers */}
+            <div className="hidden md:flex items-center space-x-4">
+              <div className="relative">
+                <select
+                  onChange={(e) => changeLanguage(e.target.value)}
+                  value={i18n.language}
+                  className="bg-transparent text-gray-700 dark:text-gray-300  py-2 pl-8 pr-4 rounded-md appearance-none focus:outline-none focus:ring-0"
+                >
+                  <option value="en" className='text-gray-700'>EN</option>
+                  <option value="fr" className='text-gray-700'>FR</option>
+                  <option value="ar" className='text-gray-700'>AR</option>
+                </select>
+                <GlobeAltIcon className="h-5 w-5 absolute left-2 top-1/2 -translate-y-1/2 text-gray-700 dark:text-gray-300" />
+              </div>
+              <ThemeToggleButton />
+            </div>
+
+            <button
+              type="button"
+              onClick={openCart}
+              className="relative text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
+              aria-label="Open cart"
             >
-              <path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" />
-            </svg>
-            <svg
-              className="block w-5 h-5 dark:hidden"
-              fill="currentColor"
-              viewBox="0 0 20 20"
+              <ShoppingCartIcon className="h-6 w-6" />
+              {cartItemsCount > 0 && (
+                <span className="absolute  -top-2 -right-2 bg-brand-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                  {cartItemsCount}
+                </span>
+              )}
+            </button>
+
+            {/* Mobile menu button */}
+            <button
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className="md:hidden text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
             >
-              <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
-            </svg>
+              {isMenuOpen ? (
+                <XMarkIcon className="h-6 w-6" />
+              ) : (
+                <Bars3Icon className="h-6 w-6" />
+              )}
           </button>
+          </div>
         </div>
-      </div>
+
+
+        {/* Mobile Menu */}
+        {isMenuOpen && (
+          <div className="md:hidden border-t border-gray-200 dark:border-gray-700">
+            <div className="px-2 pt-2 pb-3 space-y-1">
+              {navigation.map((item) => (
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+                >
+                  {item.name}
+                </Link>
+              ))}
+              
+              {/* Language and Theme Switchers for Mobile */}
+              <div className="border-t border-gray-200 dark:border-gray-700 pt-3 mt-3">
+                <div className="flex items-center justify-between px-3 py-2">
+                  <div className="flex items-center space-x-2">
+                    <GlobeAltIcon className="h-5 w-5 text-gray-700 dark:text-gray-300" />
+                    <select
+                      onChange={(e) => changeLanguage(e.target.value)}
+                      value={i18n.language}
+                      className="bg-transparent text-gray-700 dark:text-gray-300 py-1 rounded-md appearance-none focus:outline-none focus:ring-0 text-sm"
+                    >
+                      <option value="en" className='text-gray-700'>English</option>
+                      <option value="fr" className='text-gray-700'>Français</option>
+                      <option value="ar" className='text-gray-700'>العربية</option>
+                    </select>
+                  </div>
+                  <ThemeToggleButton />
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
     </div>
   </nav>
-  )
+  );
 }

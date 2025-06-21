@@ -2,20 +2,41 @@
 import { useState } from 'react';
 import Button from "@/components/ui/button/Button";
 import Image from "next/image";
+import Link from 'next/link';
+import { useTranslation } from 'react-i18next';
 
 export default function VideoShowcase() {
   const [isPlaying, setIsPlaying] = useState(false);
+  const { i18n } = useTranslation();
   const videoId = "t-j3dXD2vA8"; // Your YouTube video ID
+
+  const content = {
+    title: {
+      en: "See Our Store in Action",
+      fr: "Découvrez Notre Magasin en Action",
+      ar: "شاهد متجرنا في العمل"
+    },
+    description: {
+      en: "Take a virtual tour of our store and discover what makes us special",
+      fr: "Faites une visite virtuelle de notre magasin et découvrez ce qui nous rend spéciaux",
+      ar: "قم بجولة افتراضية في متجرنا واكتشف ما يجعلنا مميزين"
+    },
+    learnMore: {
+      en: "Learn More About Us",
+      fr: "En Savoir Plus Sur Nous",
+      ar: "اعرف المزيد عنا"
+    }
+  };
 
   return (
     <div className="py-16 bg-white dark:bg-gray-900">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center">
           <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl dark:text-white">
-            See Our Store in Action
+            {content.title[i18n.language as keyof typeof content.title]}
           </h2>
           <p className="mt-4 text-lg text-gray-600 dark:text-gray-400">
-            Take a virtual tour of our store and discover what makes us special
+            {content.description[i18n.language as keyof typeof content.description]}
           </p>
         </div>
 
@@ -61,9 +82,10 @@ export default function VideoShowcase() {
           </div>
 
           <div className="mt-8 text-center">
-            <Button variant="outline" size="md">
-              Learn More About Us
+            <Link href={'/about'}><Button variant="outline" size="md">
+              {content.learnMore[i18n.language as keyof typeof content.learnMore]}
             </Button>
+            </Link>
           </div>
         </div>
       </div>

@@ -1,135 +1,273 @@
 'use client';
-import Button from "@/components/ui/button/Button";
-import Image from "next/image";
-import Link from "next/link";
+import { useState, useEffect } from 'react';
+import Image from 'next/image';
+import Link from 'next/link';
+import { motion, AnimatePresence } from "framer-motion";
+import { ChevronLeft, ChevronRight, Gift, Zap, ShoppingBag, Smile } from "lucide-react";
+import { useSelector } from 'react-redux';
+import { RootState } from '@/store/store';
+import { useTranslation } from 'react-i18next';
+
+interface Product {
+  id: number;
+  name: string;
+  price: number;
+  quantity: number;
+  image: string;
+}
+
+interface StoreSlide {
+  id: number;
+  name: {
+    en: string;
+    fr: string;
+    ar: string;
+  };
+  description: {
+    en: string;
+    fr: string;
+    ar: string;
+  };
+  image: string;
+  isStoreSlide: true;
+}
+
+interface Pack {
+  id?: number;
+  name: string;
+  description: string;
+  products: Product[];
+  price: number;
+  discount: number;
+  images: string[];
+  isStoreSlide: false;
+}
+
+type Slide = StoreSlide | Pack;
+
+const storeSlides: StoreSlide[] = [
+  {
+    id: 1,
+    name: {
+      en: "Welcome to Our Store",
+      fr: "Bienvenue dans Notre Magasin",
+      ar: "مرحباً بك في متجرنا"
+    },
+    description: {
+      en: "Discover amazing products at great prices",
+      fr: "Découvrez des produits incroyables à des prix imbattables",
+      ar: "اكتشف منتجات رائعة بأسعار مميزة"
+    },
+    image: "/images/store/1.webp",
+    isStoreSlide: true
+  },
+];
 
 export default function Hero() {
+  const { packs } = useSelector((state: RootState) => state.offers);
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [isAutoPlaying, setIsAutoPlaying] = useState(true);
+  const {t, i18n} = useTranslation();
+
+  const content = {
+    bundleOffer: {
+      en: "Bundle Offer",
+      fr: "Offre Groupée",
+      ar: "عرض الحزمة"
+    },
+    save: {
+      en: "Save",
+      fr: "Économisez",
+      ar: "وفر"
+    },
+    shopThisPack: {
+      en: "Shop This Pack",
+      fr: "Acheter ce Pack",
+      ar: "اشتر هذه الحزمة"
+    }
+  };
+
+  // Convert packs to include isStoreSlide property and fix type compatibility
+  const typedPacks: Pack[] = packs?.map(pack => ({
+    ...pack,
+    products: pack.products.map(product => ({
+      ...product,
+      image: (product as Product).image || '/images/placeholder.png' // Handle missing image property
+    })),
+    isStoreSlide: false
+  })) || [];
+
+  const allSlides: Slide[] = [...storeSlides, ...typedPacks];
+
+  useEffect(() => {
+    if (!isAutoPlaying) return;
+
+    const timer = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % allSlides.length);
+    }, 5000);
+
+    return () => clearInterval(timer);
+  }, [allSlides.length, isAutoPlaying]);
+
+  const nextSlide = () => {
+    setCurrentSlide((prev) => (prev + 1) % allSlides.length);
+    setIsAutoPlaying(false);
+  };
+
+  const prevSlide = () => {
+    setCurrentSlide((prev) => (prev - 1 + allSlides.length) % allSlides.length);
+    setIsAutoPlaying(false);
+  };
+
+  const currentSlideData = allSlides[currentSlide];
+
+  const calculateTotalOriginalPrice = (products: Product[]) => {
+    return products.reduce((total, product) => total + (product.price * product.quantity), 0);
+  };
+
   return (
-    <div className="relative overflow-hidden bg-white dark:bg-gray-900 mt-20 py-20">
-      {/* Background Pattern */}
-      <div className="absolute inset-0 bg-[url('/pattern.png')] opacity-5" />
-      
-      <div className="relative mx-auto max-w-7xl">
-        <div className="relative z-10 lg:grid lg:grid-cols-12 lg:gap-8">
-          {/* Left Content */}
-          <div className="px-4 sm:px-6 sm:text-center md:mx-auto lg:col-span-6 lg:flex lg:items-center lg:text-left xl:col-span-6">
-            <div>
-              <div className="inline-flex items-center px-4 py-1.5 rounded-full text-sm font-medium bg-brand-100 text-brand-600 dark:bg-brand-900 dark:text-brand-300">
-                <span className="flex items-center">
-                  <span className="flex h-2 w-2 rounded-full bg-brand-500 mr-2" />
-                  New Collection
-                </span>
-              </div>
-              <h1 className="mt-4 text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl md:text-6xl dark:text-white">
-                <span className="block">Discover Amazing</span>
-                <span className="block text-brand-500">Products & Services</span>
-              </h1>
-              <p className="mt-3 text-base text-gray-500 sm:mx-auto sm:mt-5 sm:max-w-xl sm:text-lg md:mt-5 md:text-xl lg:mx-0 dark:text-gray-400">
-                Explore our curated collection of premium products and services. From fashion to electronics, we&apos;ve got everything you need.
-              </p>
-              <div className="mt-8 sm:mt-12">
-                <div className="sm:flex sm:justify-center lg:justify-start">
-                  <div className="rounded-md shadow">
-                    <Link href="/shop">
-                    <Button variant="primary" size="md">
-                      Shop Now
-                    </Button>
-                    </Link>
-                  </div>
-                  <div className="mt-3 sm:mt-0 sm:ml-3">
-                    <Button variant="outline" size="md">
-                      Learn More
-                    </Button>
-                  </div>
-                </div>
-              </div>
-              {/* Stats */}
-              <div className="mt-8 sm:mt-12">
-                <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-                  <div className="text-center sm:text-left">
-                    <p className="text-3xl font-bold text-gray-900 dark:text-white">10k+</p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">Happy Customers</p>
-                  </div>
-                  <div className="text-center sm:text-left">
-                    <p className="text-3xl font-bold text-gray-900 dark:text-white">500+</p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">Products</p>
-                  </div>
-                  <div className="text-center sm:text-left">
-                    <p className="text-3xl font-bold text-gray-900 dark:text-white">24/7</p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">Support</p>
-                  </div>
-                </div>
-              </div>
-            </div>
+    <>
+    {/* Announcement Bar (optional) */}
+    {/* <div className="w-full bg-brand-500 text-white text-center py-2 font-semibold tracking-wide">Free shipping on orders over 5000 DA!</div> */}
+    <div className="relative w-full h-[600px] overflow-hidden mb-8">
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={currentSlide}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.5 }}
+          className="relative h-full w-full"
+        >
+          {/* Background */}
+          <div className="absolute inset-0">
+            {currentSlideData.isStoreSlide ? (
+              <Image
+                src={currentSlideData.image}
+                alt={currentSlideData.name.en}
+                fill
+                className="object-cover"
+                priority
+              />
+            ) : (
+              <Image
+                src={currentSlideData.images?.[0] ? `${process.env.NEXT_PUBLIC_SERVER}/${currentSlideData.images[0]}` : "/images/store/1.webp"}
+                alt={currentSlideData.name}
+                fill
+                className="object-cover blur-sm scale-110"
+                priority
+              />
+            )}
+            <div className="absolute inset-0 bg-gradient-to-br from-black/80 via-black/60 to-transparent" />
           </div>
 
-          {/* Right Content - Image Section */}
-          <div className="mt-12 lg:mt-0 lg:col-span-6 xl:col-span-6 mx-4">
-            <div className="relative">
-              {/* Main Image */}
-              <div className="relative mx-auto w-full max-w-lg">
-                <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl bg-gray-100 dark:bg-gray-800">
-                  <Image
-                    src="/hero-image.jpg"
-                    alt="Store showcase"
-                    fill
-                    className="object-cover"
-                    priority
-                  />
-                </div>
-                
-                {/* Floating Elements */}
-                <div className="absolute -top-4 -right-4">
-                  <div className="relative">
-                    <div className="absolute -inset-1 rounded-lg bg-gradient-to-r from-brand-500 to-brand-600 opacity-75 blur"></div>
-                    <div className="relative rounded-lg bg-white dark:bg-gray-800 p-4 shadow-lg">
-                      <div className="flex items-center space-x-3">
-                        <div className="flex-shrink-0">
-                          <div className="h-10 w-10 rounded-full bg-brand-100 dark:bg-brand-900 flex items-center justify-center">
-                            <svg className="h-6 w-6 text-brand-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                            </svg>
-                          </div>
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-gray-900 dark:text-white">Best Quality</p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400">Guaranteed</p>
-                        </div>
-                      </div>
-                    </div>
+          {/* Content */}
+          <div className="relative h-full flex items-center justify-center px-8">
+            {currentSlideData.isStoreSlide ? (
+              <div className="max-w-2xl mx-auto text-center">
+                <h1 className="text-4xl md:text-5xl font-extrabold text-white mb-4 drop-shadow-lg">
+                  {currentSlideData.name[i18n.language]}
+                </h1>
+                <p className="text-lg md:text-xl text-gray-200 mb-8 drop-shadow">
+                  {currentSlideData.description[i18n.language]}
+                </p>
+                <Link
+                  href="/products"
+                  className="inline-block bg-brand-500 text-white px-8 py-3 rounded-full font-semibold text-lg shadow-lg hover:bg-brand-600 transition-colors"
+                >
+                 {t('home.hero.cta')}
+                </Link>
+              </div>
+            ) : (
+              <div className="w-full max-w-5xl mx-auto flex flex-col md:flex-row items-center gap-6 md:gap-10 bg-white/10 dark:bg-gray-900/60 rounded-2xl shadow-xl p-4 md:p-14 backdrop-blur-md border border-white/10">
+                {/* Pack Info */}
+                <div className="flex-1 flex flex-col items-start justify-center gap-3 md:gap-4 w-full md:w-auto">
+                  <span className="inline-flex items-center gap-2 bg-brand-500/90 text-white px-3 py-1 rounded-full text-xs md:text-sm font-bold mb-1 md:mb-2 shadow">
+                    <Gift className="w-4 h-4 md:w-5 md:h-5" /> {content.bundleOffer[i18n.language as keyof typeof content.bundleOffer]}
+                  </span>
+                  <h2 className="text-2xl md:text-4xl font-extrabold text-white mb-1 md:mb-2 drop-shadow-lg">
+                    {currentSlideData.name}
+                  </h2>
+                  <p className="text-sm md:text-lg text-gray-200 mb-2 md:mb-4 max-w-md">
+                    {currentSlideData.description}
+                  </p>
+                  <div className="flex items-center gap-2 md:gap-4 mb-2 md:mb-4 flex-wrap">
+                    <span className="text-lg md:text-2xl font-bold text-brand-300 bg-white/20 px-3 md:px-4 py-1.5 md:py-2 rounded-xl shadow">
+                      {currentSlideData.price} DA
+                    </span>
+                    {currentSlideData.discount > 0 && (
+                      <span className="text-base md:text-lg line-through text-gray-300">
+                        {calculateTotalOriginalPrice(currentSlideData.products).toLocaleString()} DA
+                      </span>
+                    )}
+                    {currentSlideData.discount > 0 && (
+                      <span className="bg-red-500 text-white px-2 md:px-3 py-1 rounded-full text-xs md:text-sm font-bold">
+                        {content.save[i18n.language as keyof typeof content.save]} {currentSlideData.discount}%
+                      </span>
+                    )}
                   </div>
+                  <Link
+                    href={`/packs/${currentSlideData.id}`}
+                    className="inline-block bg-brand-500 text-white px-6 md:px-8 py-2 md:py-3 rounded-full font-semibold text-base md:text-lg shadow-lg hover:bg-brand-600 transition-colors w-full md:w-auto text-center"
+                  >
+                    {content.shopThisPack[i18n.language as keyof typeof content.shopThisPack]}
+                  </Link>
                 </div>
-
-                <div className="absolute -bottom-4 -left-4">
-                  <div className="relative">
-                    <div className="absolute -inset-1 rounded-lg bg-gradient-to-r from-brand-500 to-brand-600 opacity-75 blur"></div>
-                    <div className="relative rounded-lg bg-white dark:bg-gray-800 p-4 shadow-lg">
-                      <div className="flex items-center space-x-3">
-                        <div className="flex-shrink-0">
-                          <div className="h-10 w-10 rounded-full bg-brand-100 dark:bg-brand-900 flex items-center justify-center">
-                            <svg className="h-6 w-6 text-brand-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                          </div>
+                {/* Pack Products */}
+                <div className="flex-1 w-full flex justify-center">
+                  <div className="flex flex-col gap-2 md:gap-4 items-center min-w-[120px] w-full">
+                    {currentSlideData.products.map((product) => (
+                      <div key={product.id} className="flex flex-row items-center bg-white/80 dark:bg-gray-800/80 rounded-xl p-2 md:p-3 shadow border border-gray-100 dark:border-gray-800 min-w-0 w-full max-w-xs md:max-w-[220px] gap-2 md:gap-3">
+                        <div className="relative w-10 h-10 md:w-14 md:h-14 flex-shrink-0">
+                          <Image
+                            src={`${process.env.NEXT_PUBLIC_SERVER}/${product.image}`}
+                            alt={product.name}
+                            fill
+                            className="object-cover rounded-lg"
+                          />
                         </div>
-                        <div>
-                          <p className="text-sm font-medium text-gray-900 dark:text-white">Fast Delivery</p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400">24/7 Service</p>
+                        <div className="flex flex-col flex-1 min-w-0">
+                          <span className="text-xs md:text-sm font-semibold text-gray-900 dark:text-white text-left truncate">{product.name}</span>
+                          <span className="text-xs text-gray-500 dark:text-gray-300">{product.price} DA</span>
                         </div>
                       </div>
-                    </div>
+                    ))}
                   </div>
                 </div>
               </div>
-
-              {/* Background Decoration */}
-              <div className="absolute inset-0 -z-10">
-                <div className="absolute inset-0 bg-gradient-to-r from-brand-500/20 to-brand-600/20 blur-3xl" />
-              </div>
-            </div>
+            )}
           </div>
-        </div>
+        </motion.div>
+      </AnimatePresence>
+
+      {/* Navigation Buttons */}
+      <button
+        onClick={prevSlide}
+        className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/70 text-white p-3 rounded-full shadow-lg hover:bg-brand-500 hover:scale-110 transition-all z-10"
+      >
+        <ChevronLeft className="w-7 h-7" />
+      </button>
+      <button
+        onClick={nextSlide}
+        className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/70 text-white p-3 rounded-full shadow-lg hover:bg-brand-500 hover:scale-110 transition-all z-10"
+      >
+        <ChevronRight className="w-7 h-7" />
+      </button>
+
+      {/* Slide Indicators */}
+      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-3 z-10">
+        {allSlides.map((_, index) => (
+          <button
+            key={index}
+            onClick={() => {
+              setCurrentSlide(index);
+              setIsAutoPlaying(false);
+            }}
+            className={`w-3 h-3 rounded-full border-2 border-white transition-all duration-200 ${index === currentSlide ? 'bg-brand-500 scale-125 shadow-lg' : 'bg-white/50'}`}
+          />
+        ))}
       </div>
     </div>
+    </>
   );
 } 
