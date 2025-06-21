@@ -1,6 +1,8 @@
 const mysql = require('mysql2/promise');
 const dotenv = require('dotenv');
 const bcrypt = require('bcryptjs');
+const fs = require('fs');
+const path = require('path'):
 
 dotenv.config();
 
@@ -13,7 +15,10 @@ async function initializeUsers() {
       port: process.env.DB_PORT || 3333,
       user: process.env.DB_USER || 'root',
       password: process.env.DB_PASSWORD || '',
-      database: process.env.DB_NAME || 'ecommerce_db'
+      database: process.env.DB_NAME || 'ecommerce_db',
+      ssl : {
+        ca: fs.readFileSync(path.resolve(__dirname, 'ca.pem'))
+      },
     });
 
     console.log('✅ Connected to database');
