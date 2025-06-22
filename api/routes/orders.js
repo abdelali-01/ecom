@@ -109,7 +109,7 @@ router.get("/", async (req, res) => {
           };
         }
         // Calculate subtotal
-        const subtotal = pack.price;
+        const subtotal = packObj.price;
         // Fetch shipping price from wilayas table if possible
         let shipping = 0;
         try {
