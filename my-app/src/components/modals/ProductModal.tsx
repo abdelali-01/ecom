@@ -245,7 +245,7 @@ export default function ProductModal({ closeModal, selectedItem }: ProductModalP
                             />
                             <span className="text-xs text-gray-400 ml-2">Feature this product on the landing page</span>
                         </div>
-                        <div className='col-span-2'>
+                        <div className='col-span-1 md:col-span-2'>
                             <Label className="font-semibold text-gray-700 dark:text-gray-400">Description</Label>
                             <TextArea
                                 value={product.description}
