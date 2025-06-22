@@ -164,8 +164,8 @@ const ProductOrderForm = ({ products, productId, productPrice, attributes, disco
 
   useEffect(() => {
     if (formData.wilaya && selectedWilayaData) {
-      setCities(JSON.parse(selectedWilayaData.cities));
-      setShippingPrices(JSON.parse(selectedWilayaData.shipping_prices));
+      setCities(typeof selectedWilayaData.cities === 'string' ? JSON.parse(selectedWilayaData.cities) : selectedWilayaData.cities);
+      setShippingPrices(typeof selectedWilayaData.shipping_prices === "string" ? JSON.parse(selectedWilayaData.shipping_prices) : selectedWilayaData.shipping_prices);
     } else {
       setCities([]);
       setShippingPrices({ home: 0, desk: 0 });
