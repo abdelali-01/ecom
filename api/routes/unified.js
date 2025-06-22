@@ -8,6 +8,7 @@ const uploadCategory = require("../config/multerCategory");
 
 // Helper function to normalize path
 const normalizePath = (filePath) => {
+  if (typeof filePath !== "string") return "";
   return filePath.replace(/\\/g, "/");
 };
 
@@ -67,10 +68,9 @@ router.get("/", async (req, res) => {
         try {
           const parsed = JSON.parse(product.images);
           images = Array.isArray(parsed)
-            ? parsed.map(normalizePath)
+            ? parsed.map((img) => normalizePath(img))
             : [normalizePath(parsed)];
         } catch {
-          // Not a valid JSON — fallback to single image string
           images = [normalizePath(product.images)];
         }
       }
