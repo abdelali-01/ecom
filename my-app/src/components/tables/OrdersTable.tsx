@@ -130,14 +130,14 @@ export default function OrdersTable() {
                                 >
                                     <TableCell className="px-4 py-3 text-gray-500 text-start font-semibold dark:text-gray-400">
                                         <div className='flex flex-col gap-2'>
-                                            {order.is_pack ? <div className='flex items-center gap-3'>
-                                                <Image
+                                            {order.is_pack  ? <div className='flex items-center gap-3'>
+                                                {order.pack.image && <Image
                                                     src={`${process.env.NEXT_PUBLIC_SERVER}/${order.pack.image}`}
                                                     alt={order.pack.name}
                                                     width={60}
                                                     height={60}
                                                     className='object-cover rounded-md'
-                                                />
+                                                />}
                                                 {order.pack.name}
                                             </div> :
                                                 order.products.map(product => (

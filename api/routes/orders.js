@@ -36,7 +36,9 @@ router.get("/", async (req, res) => {
         const attrAgg = {};
         variantsForProduct.forEach((variant) => {
           const attrs = variant.attributes
-            ? typeof variant.attributes === 'string' ? JSON.parse(variant.attributes) : variant.attributes
+            ? typeof variant.attributes === "string"
+              ? JSON.parse(variant.attributes)
+              : variant.attributes
             : {};
           Object.entries(attrs).forEach(([attrName, attrValue]) => {
             if (!attrAgg[attrName]) attrAgg[attrName] = {};
@@ -72,13 +74,21 @@ router.get("/", async (req, res) => {
             [order.id, pack.pack_id]
           );
           // Attach products to the pack, and flatten for products array
-          const products = packProducts.map(prod => ({
+          const products = packProducts.map((prod) => ({
             productId: prod.product_id,
             quantity: prod.quantity,
-            attributes: prod.attributes ? typeof prod.attributes === 'string' ? JSON.parse(prod.attributes) : prod.attributes : {},
+            attributes: prod.attributes
+              ? typeof prod.attributes === "string"
+                ? JSON.parse(prod.attributes)
+                : prod.attributes
+              : {},
             name: prod.product_name,
             price: prod.product_price,
-            image: prod.product_images ? typeof prod.product_images === "string" ? JSON.parse(prod.product_images)[0] : prod.product_images[0] : null,
+            image: prod.product_images
+              ? typeof prod.product_images === "string"
+                ? JSON.parse(prod.product_images)[0]
+                : prod.product_images[0]
+              : null,
             packId: pack.pack_id,
           }));
           allPackProducts = allPackProducts.concat(products);
@@ -86,7 +96,11 @@ router.get("/", async (req, res) => {
           packObj = {
             id: pack.pack_id,
             name: pack.pack_name,
-            image: pack.pack_images ? typeof pack.pack_images === 'string' ? JSON.parse(pack.pack_images)[0] : pack.pack_images[0] : null,
+            image: pack.pack_images
+              ? typeof pack.pack_images === "string"
+                ? JSON.parse(pack.pack_images)[0]
+                : pack.pack_images[0]
+              : null,
             price: pack.pack_price,
             discount: pack.pack_discount,
             description: pack.pack_description,
@@ -95,7 +109,7 @@ router.get("/", async (req, res) => {
           };
         }
         // Calculate subtotal
-        const subtotal = allPackProducts.reduce((sum, prod) => sum + prod.price * (prod.quantity || 1), 0);
+        const subtotal = pack.price;
         // Fetch shipping price from wilayas table if possible
         let shipping = 0;
         try {
@@ -105,7 +119,10 @@ router.get("/", async (req, res) => {
               [order.wilaya]
             );
             if (wilayaRows.length > 0) {
-              const shippingPrices = typeof wilayaRows[0].shipping_prices === 'string' ? JSON.parse(wilayaRows[0].shipping_prices) : wilayaRows[0].shipping_prices;
+              const shippingPrices =
+                typeof wilayaRows[0].shipping_prices === "string"
+                  ? JSON.parse(wilayaRows[0].shipping_prices)
+                  : wilayaRows[0].shipping_prices;
               shipping = shippingPrices[order.delivery_type] || 0;
             }
           }
@@ -117,21 +134,32 @@ router.get("/", async (req, res) => {
           discount = Number(order.discount_value);
         }
         // For all products in all packs, fetch and attach product_attr
-        const allProductIds = Array.from(new Set(allPackProducts.map(p => p.productId)));
+        const allProductIds = Array.from(
+          new Set(allPackProducts.map((p) => p.productId))
+        );
         let productAttrsById = {};
         if (allProductIds.length > 0) {
           const [variants] = await pool.query(
-            `SELECT product_id, attributes, stock FROM variants WHERE product_id IN (${allProductIds.map(() => '?').join(',')})`,
+            `SELECT product_id, attributes, stock FROM variants WHERE product_id IN (${allProductIds
+              .map(() => "?")
+              .join(",")})`,
             allProductIds
           );
           productAttrsById = allProductIds.reduce((acc, pid) => {
-            const variantsForProduct = variants.filter(v => v.product_id == pid);
+            const variantsForProduct = variants.filter(
+              (v) => v.product_id == pid
+            );
             const attrAgg = {};
-            variantsForProduct.forEach(variant => {
-              const attrs = variant.attributes ? typeof variant.attributes === 'string' ? JSON.parse(variant.attributes) : variant.attributes : {};
+            variantsForProduct.forEach((variant) => {
+              const attrs = variant.attributes
+                ? typeof variant.attributes === "string"
+                  ? JSON.parse(variant.attributes)
+                  : variant.attributes
+                : {};
               Object.entries(attrs).forEach(([attrName, attrValue]) => {
                 if (!attrAgg[attrName]) attrAgg[attrName] = {};
-                if (!attrAgg[attrName][attrValue]) attrAgg[attrName][attrValue] = 0;
+                if (!attrAgg[attrName][attrValue])
+                  attrAgg[attrName][attrValue] = 0;
                 attrAgg[attrName][attrValue] += variant.stock;
               });
             });
@@ -140,7 +168,7 @@ router.get("/", async (req, res) => {
           }, {});
         }
         // Now, re-map allPackProducts to include product_attr
-        allPackProducts = allPackProducts.map(p => ({
+        allPackProducts = allPackProducts.map((p) => ({
           ...p,
           product_attr: productAttrsById[p.productId] || {},
         }));
@@ -163,11 +191,19 @@ router.get("/", async (req, res) => {
             .map((op) => ({
               productId: op.product_id,
               quantity: op.quantity,
-              attributes: op.attributes ? typeof op.attributes === "string" ? JSON.parse(op.attributes) : op.attributes : {},
+              attributes: op.attributes
+                ? typeof op.attributes === "string"
+                  ? JSON.parse(op.attributes)
+                  : op.attributes
+                : {},
               product_attr: productAttrsById[op.product_id] || {},
               name: op.product_name,
               price: op.product_price,
-              image: op.product_images ? typeof op.product_images === 'string' ? JSON.parse(op.product_images)[0] : op.product_images[0] : null,
+              image: op.product_images
+                ? typeof op.product_images === "string"
+                  ? JSON.parse(op.product_images)[0]
+                  : op.product_images[0]
+                : null,
             })),
         });
       }
@@ -176,10 +212,12 @@ router.get("/", async (req, res) => {
     // After building the result array, calculate the total for each order
     for (const order of result) {
       // Calculate subtotal
-      const subtotal = order.products.reduce(
-        (sum, prod) => sum + prod.price * (prod.quantity || 1),
-        0
-      );
+      const subtotal = order.is_pack
+        ? order.pack.price
+        : order.products.reduce(
+            (sum, prod) => sum + prod.price * (prod.quantity || 1),
+            0
+          );
       // Fetch shipping price from wilayas table if possible
       let shipping = 0;
       try {
@@ -189,7 +227,10 @@ router.get("/", async (req, res) => {
             [order.wilaya]
           );
           if (wilayaRows.length > 0) {
-            const shippingPrices =typeof wilayaRows[0].shipping_prices === 'string' ? JSON.parse(wilayaRows[0].shipping_prices) : wilayaRows[0].shipping_prices ;
+            const shippingPrices =
+              typeof wilayaRows[0].shipping_prices === "string"
+                ? JSON.parse(wilayaRows[0].shipping_prices)
+                : wilayaRows[0].shipping_prices;
             shipping = shippingPrices[order.delivery_type] || 0;
           }
         }
@@ -233,7 +274,18 @@ router.post("/", async (req, res) => {
 
     const [result] = await connection.query(
       `INSERT INTO orders (name, phone, wilaya, city, address, remarks, delivery_type, promo_code, discount_value, is_pack) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [name, phone, wilaya, city, address, remarks, delivery_type, promoCode || null, discountValue, isPack ? 1 : 0]
+      [
+        name,
+        phone,
+        wilaya,
+        city,
+        address,
+        remarks,
+        delivery_type,
+        promoCode || null,
+        discountValue,
+        isPack ? 1 : 0,
+      ]
     );
     const orderId = result.insertId;
 
@@ -247,17 +299,23 @@ router.post("/", async (req, res) => {
           for (const prod of pack.products) {
             await connection.query(
               `INSERT INTO order_pack_products (order_id, pack_id, product_id, quantity, attributes) VALUES (?, ?, ?, ?, ?)`,
-              [orderId, pack.packId, prod.productId, prod.quantity || 1, JSON.stringify(prod.attributes || {})]
+              [
+                orderId,
+                pack.packId,
+                prod.productId,
+                prod.quantity || 1,
+                JSON.stringify(prod.attributes || {}),
+              ]
             );
             const qtyToDecrease = (pack.quantity || 1) * (prod.quantity || 1);
             if (prod.attributes && Object.keys(prod.attributes).length > 0) {
               await connection.query(
-                'UPDATE variants SET stock = stock - ? WHERE product_id = ? AND attributes = ?',
+                "UPDATE variants SET stock = stock - ? WHERE product_id = ? AND attributes = ?",
                 [qtyToDecrease, prod.productId, JSON.stringify(prod.attributes)]
               );
             } else {
               await connection.query(
-                'UPDATE products SET quantity = quantity - ? WHERE id = ?',
+                "UPDATE products SET quantity = quantity - ? WHERE id = ?",
                 [qtyToDecrease, prod.productId]
               );
             }
@@ -268,16 +326,21 @@ router.post("/", async (req, res) => {
       for (const prod of products) {
         await connection.query(
           `INSERT INTO order_products (order_id, product_id, quantity, attributes) VALUES (?, ?, ?, ?)`,
-          [orderId, prod.productId, prod.quantity, JSON.stringify(prod.attributes || {})]
+          [
+            orderId,
+            prod.productId,
+            prod.quantity,
+            JSON.stringify(prod.attributes || {}),
+          ]
         );
         if (prod.attributes && Object.keys(prod.attributes).length > 0) {
           await connection.query(
-            'UPDATE variants SET stock = stock - ? WHERE product_id = ? AND attributes = ?',
+            "UPDATE variants SET stock = stock - ? WHERE product_id = ? AND attributes = ?",
             [prod.quantity, prod.productId, JSON.stringify(prod.attributes)]
           );
         } else {
           await connection.query(
-            'UPDATE products SET quantity = quantity - ? WHERE id = ?',
+            "UPDATE products SET quantity = quantity - ? WHERE id = ?",
             [prod.quantity, prod.productId]
           );
         }
@@ -285,7 +348,9 @@ router.post("/", async (req, res) => {
     }
 
     await connection.commit();
-    res.status(201).json({ id: orderId, message: "Order created successfully" });
+    res
+      .status(201)
+      .json({ id: orderId, message: "Order created successfully" });
   } catch (error) {
     if (connection) await connection.rollback();
     console.error("Error creating order:", error);
@@ -305,75 +370,153 @@ router.patch("/:id", async (req, res) => {
     const updates = req.body;
     const { products, packs, order_status, ...orderFields } = updates;
 
-    const [currentOrderRows] = await connection.query('SELECT * FROM orders WHERE id = ?', [orderId]);
+    const [currentOrderRows] = await connection.query(
+      "SELECT * FROM orders WHERE id = ?",
+      [orderId]
+    );
     if (currentOrderRows.length === 0) {
-        await connection.rollback();
-        connection.release();
-        return res.status(404).json({ message: 'Order not found' });
+      await connection.rollback();
+      connection.release();
+      return res.status(404).json({ message: "Order not found" });
     }
     const currentOrder = currentOrderRows[0];
 
-    if (updates.order_status === 'canceled' && currentOrder.order_status !== 'canceled') {
-        if (currentOrder.is_pack) {
-            const [orderPacks] = await connection.query('SELECT * FROM order_packs WHERE order_id = ?', [orderId]);
-            for (const pack of orderPacks) {
-                const [packProducts] = await connection.query('SELECT * FROM order_pack_products WHERE order_id = ? AND pack_id = ?', [orderId, pack.pack_id]);
-                for (const prod of packProducts) {
-                    const qtyToIncrease = (pack.quantity || 1) * (prod.quantity || 1);
-                    const attributes = prod.attributes ? typeof prod.attributes ? JSON.parse(prod.attributes): prod.attributes : {};
-                    if (Object.keys(attributes).length > 0) {
-                        await connection.query('UPDATE variants SET stock = stock + ? WHERE product_id = ? AND attributes = ?', [qtyToIncrease, prod.product_id, JSON.stringify(attributes)]);
-                    } else {
-                        await connection.query('UPDATE products SET quantity = quantity + ? WHERE id = ?', [qtyToIncrease, prod.product_id]);
-                    }
-                }
+    if (
+      updates.order_status === "canceled" &&
+      currentOrder.order_status !== "canceled"
+    ) {
+      if (currentOrder.is_pack) {
+        const [orderPacks] = await connection.query(
+          "SELECT * FROM order_packs WHERE order_id = ?",
+          [orderId]
+        );
+        for (const pack of orderPacks) {
+          const [packProducts] = await connection.query(
+            "SELECT * FROM order_pack_products WHERE order_id = ? AND pack_id = ?",
+            [orderId, pack.pack_id]
+          );
+          for (const prod of packProducts) {
+            const qtyToIncrease = (pack.quantity || 1) * (prod.quantity || 1);
+            const attributes = prod.attributes
+              ? typeof prod.attributes
+                ? JSON.parse(prod.attributes)
+                : prod.attributes
+              : {};
+            if (Object.keys(attributes).length > 0) {
+              await connection.query(
+                "UPDATE variants SET stock = stock + ? WHERE product_id = ? AND attributes = ?",
+                [qtyToIncrease, prod.product_id, JSON.stringify(attributes)]
+              );
+            } else {
+              await connection.query(
+                "UPDATE products SET quantity = quantity + ? WHERE id = ?",
+                [qtyToIncrease, prod.product_id]
+              );
             }
-        } else {
-            const [orderProducts] = await connection.query('SELECT * FROM order_products WHERE order_id = ?', [orderId]);
-            for (const prod of orderProducts) {
-                const attributes = prod.attributes ? typeof prod.attributes === 'string' ? JSON.parse(prod.attributes): prod.attributes : {};
-                if (Object.keys(attributes).length > 0) {
-                    await connection.query('UPDATE variants SET stock = stock + ? WHERE product_id = ? AND attributes = ?', [prod.quantity, prod.product_id, JSON.stringify(attributes)]);
-                } else {
-                    await connection.query('UPDATE products SET quantity = quantity + ? WHERE id = ?', [prod.quantity, prod.product_id]);
-                }
-            }
+          }
         }
+      } else {
+        const [orderProducts] = await connection.query(
+          "SELECT * FROM order_products WHERE order_id = ?",
+          [orderId]
+        );
+        for (const prod of orderProducts) {
+          const attributes = prod.attributes
+            ? typeof prod.attributes === "string"
+              ? JSON.parse(prod.attributes)
+              : prod.attributes
+            : {};
+          if (Object.keys(attributes).length > 0) {
+            await connection.query(
+              "UPDATE variants SET stock = stock + ? WHERE product_id = ? AND attributes = ?",
+              [prod.quantity, prod.product_id, JSON.stringify(attributes)]
+            );
+          } else {
+            await connection.query(
+              "UPDATE products SET quantity = quantity + ? WHERE id = ?",
+              [prod.quantity, prod.product_id]
+            );
+          }
+        }
+      }
     }
 
-    const allFieldsToUpdate = { ...orderFields, ...(updates.order_status && { order_status: updates.order_status }) };
+    const allFieldsToUpdate = {
+      ...orderFields,
+      ...(updates.order_status && { order_status: updates.order_status }),
+    };
     if (Object.keys(allFieldsToUpdate).length > 0) {
-        const setClause = Object.keys(allFieldsToUpdate).map(key => {
-            const dbField = key.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
-            return `${dbField} = ?`;
-        }).join(', ');
-        const values = [...Object.values(allFieldsToUpdate), orderId];
-        await connection.query(`UPDATE orders SET ${setClause} WHERE id = ?`, values);
+      const setClause = Object.keys(allFieldsToUpdate)
+        .map((key) => {
+          const dbField = key.replace(
+            /[A-Z]/g,
+            (letter) => `_${letter.toLowerCase()}`
+          );
+          return `${dbField} = ?`;
+        })
+        .join(", ");
+      const values = [...Object.values(allFieldsToUpdate), orderId];
+      await connection.query(
+        `UPDATE orders SET ${setClause} WHERE id = ?`,
+        values
+      );
     }
 
     if (currentOrder.is_pack && Array.isArray(packs)) {
-      await connection.query('DELETE FROM order_pack_products WHERE order_id = ?', [orderId]);
-      await connection.query('DELETE FROM order_packs WHERE order_id = ?', [orderId]);
+      await connection.query(
+        "DELETE FROM order_pack_products WHERE order_id = ?",
+        [orderId]
+      );
+      await connection.query("DELETE FROM order_packs WHERE order_id = ?", [
+        orderId,
+      ]);
       for (const pack of packs) {
-          await connection.query(`INSERT INTO order_packs (order_id, pack_id, quantity) VALUES (?, ?, ?)`, [orderId, pack.packId, pack.quantity || 1]);
-          if (Array.isArray(pack.products)) {
-              for (const prod of pack.products) {
-                  await connection.query(`INSERT INTO order_pack_products (order_id, pack_id, product_id, quantity, attributes) VALUES (?, ?, ?, ?, ?)`, [orderId, pack.packId, prod.productId, prod.quantity || 1, JSON.stringify(prod.attributes || {})]);
-              }
+        await connection.query(
+          `INSERT INTO order_packs (order_id, pack_id, quantity) VALUES (?, ?, ?)`,
+          [orderId, pack.packId, pack.quantity || 1]
+        );
+        if (Array.isArray(pack.products)) {
+          for (const prod of pack.products) {
+            await connection.query(
+              `INSERT INTO order_pack_products (order_id, pack_id, product_id, quantity, attributes) VALUES (?, ?, ?, ?, ?)`,
+              [
+                orderId,
+                pack.packId,
+                prod.productId,
+                prod.quantity || 1,
+                JSON.stringify(prod.attributes || {}),
+              ]
+            );
           }
+        }
       }
     } else if (Array.isArray(products)) {
-        await connection.query('DELETE FROM order_products WHERE order_id = ?', [orderId]);
-        for (const prod of products) {
-            await connection.query(`INSERT INTO order_products (order_id, product_id, quantity, attributes) VALUES (?, ?, ?, ?)`, [orderId, prod.productId, prod.quantity, JSON.stringify(prod.attributes || {})]);
-        }
+      await connection.query("DELETE FROM order_products WHERE order_id = ?", [
+        orderId,
+      ]);
+      for (const prod of products) {
+        await connection.query(
+          `INSERT INTO order_products (order_id, product_id, quantity, attributes) VALUES (?, ?, ?, ?)`,
+          [
+            orderId,
+            prod.productId,
+            prod.quantity,
+            JSON.stringify(prod.attributes || {}),
+          ]
+        );
+      }
     }
 
     await connection.commit();
 
-    const [updatedOrderRows] = await connection.query('SELECT * FROM orders WHERE id = ?', [orderId]);
-    res.json({ message: 'Order updated successfully', order: updatedOrderRows[0] });
-
+    const [updatedOrderRows] = await connection.query(
+      "SELECT * FROM orders WHERE id = ?",
+      [orderId]
+    );
+    res.json({
+      message: "Order updated successfully",
+      order: updatedOrderRows[0],
+    });
   } catch (error) {
     if (connection) await connection.rollback();
     console.error("Error updating order:", error);
