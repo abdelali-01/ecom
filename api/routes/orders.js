@@ -109,7 +109,7 @@ router.get("/", async (req, res) => {
           };
         }
         // Calculate subtotal
-        const subtotal = packObj.price;
+        const subtotal = Number(packObj.price);
         // Fetch shipping price from wilayas table if possible
         let shipping = 0;
         try {
@@ -213,7 +213,7 @@ router.get("/", async (req, res) => {
     for (const order of result) {
       // Calculate subtotal
       const subtotal = order.is_pack
-        ? order.pack.price
+        ? Number(order.pack.price)
         : order.products.reduce(
             (sum, prod) => sum + prod.price * (prod.quantity || 1),
             0
