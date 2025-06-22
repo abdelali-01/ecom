@@ -2,13 +2,13 @@ const express = require("express");
 const router = express.Router();
 const pool = require("../config/db");
 const upload = require("../config/multer");
-const fs = require('fs').promises;
-const path = require('path');
-const uploadCategory = require('../config/multerCategory');
+const fs = require("fs").promises;
+const path = require("path");
+const uploadCategory = require("../config/multerCategory");
 
 // Helper function to normalize path
 const normalizePath = (filePath) => {
-    return filePath.replace(/\\/g, '/');
+  return filePath.replace(/\\/g, "/");
 };
 
 // Get all data (products with their variants and categories)
@@ -20,7 +20,10 @@ router.get("/", async (req, res) => {
     if (categories.length < 1) {
       await pool.query(
         "INSERT INTO categories (name, description) VALUES (?, ?)",
-        ["not categorized" , "not categorized product it's mean have no category !"]
+        [
+          "not categorized",
+          "not categorized product it's mean have no category !",
+        ]
       );
 
       categories = await pool.query("SELECT * FROM categories");
@@ -58,17 +61,32 @@ router.get("/", async (req, res) => {
       });
 
       // Normalize image paths
-      const images = product.images ? JSON.parse(product.images).map(normalizePath) : [];
+      let images = [];
+
+      if (product.images) {
+        try {
+          const parsed = JSON.parse(product.images);
+          images = Array.isArray(parsed)
+            ? parsed.map(normalizePath)
+            : [normalizePath(parsed)];
+        } catch {
+          // Not a valid JSON — fallback to single image string
+          images = [normalizePath(product.images)];
+        }
+      }
 
       return {
         id: product.id,
         name: product.name,
         category: product.category_name,
-        category_id :product.category_id ,
+        category_id: product.category_id,
         description: product.description,
         price: product.price,
         prevPrice: product.prevPrice,
-        quantity: productVariants.length > 0 ? productVariants.reduce((sum, v) => sum + v.stock, 0) : product.quantity,
+        quantity:
+          productVariants.length > 0
+            ? productVariants.reduce((sum, v) => sum + v.stock, 0)
+            : product.quantity,
         images: images,
         show_on_homepage: product.show_on_homepage,
         presentation: product.presentation,
@@ -81,7 +99,7 @@ router.get("/", async (req, res) => {
         id: cat.id,
         name: cat.name,
         description: cat.description,
-        image : cat.image ,
+        image: cat.image,
       })),
       products: formattedProducts,
     });
@@ -92,9 +110,9 @@ router.get("/", async (req, res) => {
 });
 
 // Create category with image
-router.post("/categories", uploadCategory.single('image'), async (req, res) => {
+router.post("/categories", uploadCategory.single("image"), async (req, res) => {
   const { name, description } = req.body;
-  const image = req.file ? req.file.path.replace(/\\/g, '/') : null;
+  const image = req.file ? req.file.path.replace(/\\/g, "/") : null;
   try {
     const [result] = await pool.query(
       "INSERT INTO categories (name, description, image) VALUES (?, ?, ?)",
@@ -107,16 +125,38 @@ router.post("/categories", uploadCategory.single('image'), async (req, res) => {
 });
 
 // Create product
-router.post("/", upload.array('images', 5), async (req, res) => {
+router.post("/", upload.array("images", 5), async (req, res) => {
   try {
-    const { name, description, price, prevPrice, category_id, attributes , quantity, show_on_homepage, presentation } = req.body;
-    
+    const {
+      name,
+      description,
+      price,
+      prevPrice,
+      category_id,
+      attributes,
+      quantity,
+      show_on_homepage,
+      presentation,
+    } = req.body;
+
     // Get uploaded file paths and normalize them
-    const uploadedImages = req.files ? req.files.map(file => normalizePath(file.path)) : [];
-    
+    const uploadedImages = req.files
+      ? req.files.map((file) => normalizePath(file.path))
+      : [];
+
     const [result] = await pool.query(
       "INSERT INTO products (name, description, price, prevPrice, quantity, category_id, images, show_on_homepage, presentation) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-      [name, description, Number(price), prevPrice ? Number(prevPrice) : 0, Number(quantity), Number(category_id), JSON.stringify(uploadedImages), show_on_homepage == 'true' ? 1 : 0, presentation || '']
+      [
+        name,
+        description,
+        Number(price),
+        prevPrice ? Number(prevPrice) : 0,
+        Number(quantity),
+        Number(category_id),
+        JSON.stringify(uploadedImages),
+        show_on_homepage == "true" ? 1 : 0,
+        presentation || "",
+      ]
     );
 
     // If attributes are provided, create variants
@@ -132,7 +172,7 @@ router.post("/", upload.array('images', 5), async (req, res) => {
               `${name}-${attrName}-${value}-${Date.now()}`,
               price,
               stock,
-              JSON.stringify({ [attrName]: value })
+              JSON.stringify({ [attrName]: value }),
             ]
           );
         }
@@ -148,14 +188,14 @@ router.post("/", upload.array('images', 5), async (req, res) => {
       quantity,
       category_id,
       images: uploadedImages,
-      show_on_homepage: show_on_homepage === '1' ? 1 : 0,
+      show_on_homepage: show_on_homepage === "1" ? 1 : 0,
       presentation,
-      attributes: attributes ? JSON.parse(attributes) : {}
+      attributes: attributes ? JSON.parse(attributes) : {},
     });
   } catch (error) {
     // If there's an error, delete any uploaded files
     if (req.files) {
-      await Promise.all(req.files.map(file => fs.unlink(file.path)));
+      await Promise.all(req.files.map((file) => fs.unlink(file.path)));
     }
     res.status(500).json({ message: error.message });
   }
@@ -184,60 +224,92 @@ router.post("/variants", async (req, res) => {
 });
 
 // Update category with image
-router.put("/categories/:id", uploadCategory.single('image'), async (req, res) => {
-  const { name, description } = req.body;
-  const image = req.file ? req.file.path.replace(/\\/g, '/') : null;
-  try {
-    let query = "UPDATE categories SET name = ?, description = ?";
-    let params = [name, description];
-    if (image) {
-      query += ", image = ?";
-      params.push(image);
-    }
-    query += " WHERE id = ?";
-    params.push(req.params.id);
+router.put(
+  "/categories/:id",
+  uploadCategory.single("image"),
+  async (req, res) => {
+    const { name, description } = req.body;
+    const image = req.file ? req.file.path.replace(/\\/g, "/") : null;
+    try {
+      let query = "UPDATE categories SET name = ?, description = ?";
+      let params = [name, description];
+      if (image) {
+        query += ", image = ?";
+        params.push(image);
+      }
+      query += " WHERE id = ?";
+      params.push(req.params.id);
 
-    await pool.query(query, params);
-    res.json({ id: req.params.id, name, description, image });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+      await pool.query(query, params);
+      res.json({ id: req.params.id, name, description, image });
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
   }
-});
+);
 
 // Update product
-router.put("/:id", upload.array('new_images', 5), async (req, res) => {
+router.put("/:id", upload.array("new_images", 5), async (req, res) => {
   try {
-    const { name, description, price, prevPrice, category_id, attributes, quantity, existing_images, show_on_homepage, presentation } = req.body;
-    
+    const {
+      name,
+      description,
+      price,
+      prevPrice,
+      category_id,
+      attributes,
+      quantity,
+      existing_images,
+      show_on_homepage,
+      presentation,
+    } = req.body;
+
     // Get existing product images
     const [existingProduct] = await pool.query(
       "SELECT images FROM products WHERE id = ?",
       [req.params.id]
     );
-    
-    let existingImages = existingProduct[0]?.images ? JSON.parse(existingProduct[0].images) : [];
-    
+
+    let existingImages = existingProduct[0]?.images
+      ? JSON.parse(existingProduct[0].images)
+      : [];
+
     // If existing_images is provided, use it instead of the current images
     if (existing_images) {
       existingImages = JSON.parse(existing_images);
     }
-    
+
     // Get new uploaded file paths and normalize them
-    const newImages = req.files ? req.files.map(file => normalizePath(file.path)) : [];
-    
+    const newImages = req.files
+      ? req.files.map((file) => normalizePath(file.path))
+      : [];
+
     // Combine existing and new images
     const updatedImages = [...existingImages, ...newImages];
-    
+
     await pool.query(
       "UPDATE products SET name = ?, description = ?, price = ?, prevPrice = ?, quantity = ?, category_id = ?, images = ?, show_on_homepage = ?, presentation = ? WHERE id = ?",
-      [name, description, Number(price), prevPrice ? Number(prevPrice) : 0, Number(quantity), Number(category_id), JSON.stringify(updatedImages), show_on_homepage == 'true' ? 1 : 0, presentation || '', req.params.id]
+      [
+        name,
+        description,
+        Number(price),
+        prevPrice ? Number(prevPrice) : 0,
+        Number(quantity),
+        Number(category_id),
+        JSON.stringify(updatedImages),
+        show_on_homepage == "true" ? 1 : 0,
+        presentation || "",
+        req.params.id,
+      ]
     );
 
     // Update variants if attributes are provided
     if (attributes) {
       // Delete existing variants
-      await pool.query("DELETE FROM variants WHERE product_id = ?", [req.params.id]);
-      
+      await pool.query("DELETE FROM variants WHERE product_id = ?", [
+        req.params.id,
+      ]);
+
       // Create new variants
       const parsedAttributes = JSON.parse(attributes);
       for (const [attrName, attrValues] of Object.entries(parsedAttributes)) {
@@ -250,7 +322,7 @@ router.put("/:id", upload.array('new_images', 5), async (req, res) => {
               `${name}-${attrName}-${value}-${Date.now()}`,
               price,
               stock,
-              JSON.stringify({ [attrName]: value })
+              JSON.stringify({ [attrName]: value }),
             ]
           );
         }
@@ -266,16 +338,16 @@ router.put("/:id", upload.array('new_images', 5), async (req, res) => {
       quantity,
       category_id,
       images: updatedImages,
-      show_on_homepage: show_on_homepage == 'true' ? 1 : 0,
+      show_on_homepage: show_on_homepage == "true" ? 1 : 0,
       presentation,
-      attributes: attributes ? JSON.parse(attributes) : {}
+      attributes: attributes ? JSON.parse(attributes) : {},
     });
   } catch (error) {
     // If there's an error, delete any newly uploaded files
     if (req.files) {
-      await Promise.all(req.files.map(file => fs.unlink(file.path)));
+      await Promise.all(req.files.map((file) => fs.unlink(file.path)));
     }
-    console.error('Error updating product:', error);
+    console.error("Error updating product:", error);
     res.status(500).json({ message: error.message });
   }
 });
