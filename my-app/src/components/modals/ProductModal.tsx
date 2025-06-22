@@ -203,28 +203,26 @@ export default function ProductModal({ closeModal, selectedItem }: ProductModalP
                                 required
                             />
                         </div>
-                        <div className="md:col-span-2 flex flex-col md:flex-row gap-3 items-end">
-                            <div className="flex-1">
-                                <Label className="font-semibold text-gray-700 dark:text-gray-400">Price</Label>
-                                <Input
-                                    type="number"
-                                    value={product.price}
-                                    onChange={(e) => setProduct(prev => ({ ...prev, price: Number(e.target.value) }))}
-                                    className="w-full placeholder-gray-500"
-                                    required
-                                    placeholder="Enter product price"
-                                />
-                            </div>
-                            <div className="flex-1">
-                                <Label className="font-semibold text-gray-700 dark:text-gray-400">Previous Price</Label>
-                                <Input
-                                    type="number"
-                                    value={product.prevPrice}
-                                    onChange={e => setProduct(prev => ({ ...prev, prevPrice: Number(e.target.value) }))}
-                                    className="w-full placeholder-gray-500"
-                                    placeholder="Enter previous price"
-                                />
-                            </div>
+                        <div >
+                            <Label className="font-semibold text-gray-700 dark:text-gray-400">Price</Label>
+                            <Input
+                                type="number"
+                                value={product.price}
+                                onChange={(e) => setProduct(prev => ({ ...prev, price: Number(e.target.value) }))}
+                                className="w-full placeholder-gray-500"
+                                required
+                                placeholder="Enter product price"
+                            />
+                        </div>
+                        <div>
+                            <Label className="font-semibold text-gray-700 dark:text-gray-400">Previous Price</Label>
+                            <Input
+                                type="number"
+                                value={product.prevPrice}
+                                onChange={e => setProduct(prev => ({ ...prev, prevPrice: Number(e.target.value) }))}
+                                className="w-full placeholder-gray-500"
+                                placeholder="Enter previous price"
+                            />
                         </div>
                         <div>
                             <Label className="font-semibold text-gray-700 dark:text-gray-400">Quantity</Label>
