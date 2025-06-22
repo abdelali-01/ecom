@@ -140,11 +140,10 @@ router.get("/", isAuthenticated, async (req, res) => {
       if (product.images) {
         try {
           const parsed = JSON.parse(product.images);
-          images = Array.isArray(parsed)
-            ? parsed.map((img) => normalizePath(img))
-            : [normalizePath(parsed)];
+          images = Array.isArray(parsed) ? parsed : [parsed];
         } catch {
-          images = [normalizePath(product.images)];
+          // fallback: maybe product.images was already parsed, or malformed
+          images = typeof product.images === 'string' ? [product.images] : [];
         }
       }
 
