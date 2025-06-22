@@ -271,9 +271,18 @@ router.put("/:id", upload.array("new_images", 5), async (req, res) => {
       [req.params.id]
     );
 
-    let existingImages = existingProduct[0]?.images
-      ? JSON.parse(existingProduct[0].images)
-      : [];
+    let images = [];
+    if (existingProduct[0].images) {
+      try {
+        const parsed = JSON.parse(existingProduct[0].images);
+        images = Array.isArray(parsed) ? parsed : [parsed];
+      } catch {
+        // fallback: maybe product.images was already parsed, or malformed
+        images = existingProduct[0].images;
+      }
+    }
+
+    let existingImages = images;
 
     // If existing_images is provided, use it instead of the current images
     if (existing_images) {
@@ -407,7 +416,18 @@ router.delete("/:id", async (req, res) => {
 
     // Delete associated images from filesystem
     if (product[0]?.images) {
-      const images = JSON.parse(product[0].images);
+      let images = [];
+
+      if (product[0].images) {
+        try {
+          const parsed = JSON.parse(product[0].images);
+          images = Array.isArray(parsed) ? parsed : [parsed];
+        } catch {
+          // fallback: maybe product.images was already parsed, or malformed
+          images = product[0].images;
+        }
+      }
+
       await Promise.all(
         images.map(async (imagePath) => {
           try {
