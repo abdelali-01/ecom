@@ -278,7 +278,7 @@ const AboutSection = () => {
                   </p>
                   {item.points && (
                     <ul className="space-y-4">
-                      {item.points[i18n.language as keyof typeof item.points].map((point, pointIndex) => (
+                      {Array.isArray(item.points[i18n.language  as keyof typeof item.points]) && item.points[i18n.language as keyof typeof item.points].map((point, pointIndex) => (
                         <motion.li
                           key={pointIndex}
                           initial={{ opacity: 0, x: -20 }}
