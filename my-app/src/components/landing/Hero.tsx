@@ -222,7 +222,7 @@ export default function Hero() {
                     )}
                   </div>
                   <Link
-                    href={`/packs/${currentSlideData.id}`}
+                    href={`/shop/pack/${currentSlideData.id}`}
                     className="inline-block bg-brand-500 text-white px-6 md:px-8 py-2 md:py-3 rounded-full font-semibold text-base md:text-lg shadow-lg hover:bg-brand-600 transition-colors w-full md:w-auto text-center"
                   >
                     {content.shopThisPack[i18n.language as keyof typeof content.shopThisPack]}

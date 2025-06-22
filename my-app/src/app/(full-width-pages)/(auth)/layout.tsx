@@ -23,11 +23,11 @@ export default function AuthLayout({
               <div className="flex flex-col items-center max-w-md">
                 <Link href="/" className="block mb-4">
                   <h1 className="mb-2 font-semibold text-gray-400 text-title-sm dark:text-white/90 sm:text-title-md">
-                    Mimstore Dashboard
+                    Bioasis Dashboard
                   </h1>
                 </Link>
                 <p className="text-center text-gray-400 dark:text-white/60">
-                  Store management system developed by ARIBI Ali
+                  Store management developed by ARIBI Ali
                 </p>
               </div>
             </div>

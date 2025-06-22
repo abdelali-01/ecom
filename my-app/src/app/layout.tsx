@@ -20,8 +20,8 @@ const elMessiri = El_Messiri({
 
 export const metadata: Metadata = {
     title:
-        "Mimstore",
-    description: "store managment system",
+        "Bioasis",
+    description: "Bioasis store",
 };
 
 export default function RootLayout({
