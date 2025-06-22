@@ -97,8 +97,8 @@ export default function OrderModal({ closeModal, order }: { closeModal: () => vo
         if (formData.wilaya && wilayas) {
             const selectedWilaya = wilayas.find(w => w.name === formData.wilaya) as WilayaData | undefined;
             if (selectedWilaya) {
-                setCities(JSON.parse(selectedWilaya.cities));
-                setShippingPrices(JSON.parse(selectedWilaya.shipping_prices));
+                setCities(typeof selectedWilaya.cities === 'string' ? JSON.parse(selectedWilaya.cities) : selectedWilaya.cities);
+                setShippingPrices(typeof selectedWilaya.shipping_prices === "string" ? JSON.parse(selectedWilaya.shipping_prices) : selectedWilaya.shipping_prices);
             }
         }
     }, [formData.wilaya, wilayas]);
