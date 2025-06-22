@@ -71,7 +71,7 @@ router.get("/", async (req, res) => {
             images = Array.isArray(parsed) ? parsed : [parsed];
           } catch {
             // fallback: maybe product.images was already parsed, or malformed
-            images = typeof product.images === "string" ? [product.images] : [];
+            images = product.images;
           }
         }
       }

@@ -30,6 +30,9 @@ export default function Home() {
   }, [dispatch]);
 
   if (!products || !packs || !categories) return <div className="h-screen flex items-center justify-center"><Loader /></div>
+
+  console.log('products :' , products)
+  console.log('cate :' , categories)
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <Hero />

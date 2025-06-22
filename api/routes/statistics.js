@@ -4,8 +4,8 @@ const pool = require("../config/db");
 
 // Helper function to normalize path
 const normalizePath = (filePath) => {
-    if (typeof filePath !== "string") return "";
-    return filePath.replace(/\\/g, "/");
+  if (typeof filePath !== "string") return "";
+  return filePath.replace(/\\/g, "/");
 };
 
 // Middleware to check if user is authenticated
@@ -143,7 +143,7 @@ router.get("/", isAuthenticated, async (req, res) => {
           images = Array.isArray(parsed) ? parsed : [parsed];
         } catch {
           // fallback: maybe product.images was already parsed, or malformed
-          images = typeof product.images === 'string' ? [product.images] : [];
+          images = product.images;
         }
       }
 
