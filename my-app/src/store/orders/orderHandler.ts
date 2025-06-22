@@ -38,7 +38,6 @@ export const createOrder = (order: Order) => async (dispatch: AppDispatch) => {
 
         if (res) {
             dispatch(setSuccessAlert('Order has been placed successfully'));
-            dispatch(fetchOrders());
         }
     } catch (error) {
         console.error('Error creating order:', error);

@@ -75,7 +75,7 @@ router.get("/", async (req, res) => {
           const products = packProducts.map(prod => ({
             productId: prod.product_id,
             quantity: prod.quantity,
-            attributes: prod.attributes ? typeof prod.attributes === string ? JSON.parse(prod.attributes) : prod.attributes : {},
+            attributes: prod.attributes ? typeof prod.attributes === 'string' ? JSON.parse(prod.attributes) : prod.attributes : {},
             name: prod.product_name,
             price: prod.product_price,
             image: prod.product_images ? typeof prod.product_images === "string" ? JSON.parse(prod.product_images)[0] : prod.product_images[0] : null,
