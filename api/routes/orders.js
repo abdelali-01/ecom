@@ -36,7 +36,7 @@ router.get("/", async (req, res) => {
         const attrAgg = {};
         variantsForProduct.forEach((variant) => {
           const attrs = variant.attributes
-            ? JSON.parse(variant.attributes)
+            ? typeof variant.attributes === 'string' ? JSON.parse(variant.attributes) : variant.attributes
             : {};
           Object.entries(attrs).forEach(([attrName, attrValue]) => {
             if (!attrAgg[attrName]) attrAgg[attrName] = {};
@@ -75,10 +75,10 @@ router.get("/", async (req, res) => {
           const products = packProducts.map(prod => ({
             productId: prod.product_id,
             quantity: prod.quantity,
-            attributes: prod.attributes ? JSON.parse(prod.attributes) : {},
+            attributes: prod.attributes ? typeof prod.attributes === string ? JSON.parse(prod.attributes) : prod.attributes : {},
             name: prod.product_name,
             price: prod.product_price,
-            image: prod.product_images ? JSON.parse(prod.product_images)[0] : null,
+            image: prod.product_images ? typeof prod.product_images === "string" ? JSON.parse(prod.product_images)[0] : prod.product_images[0] : null,
             packId: pack.pack_id,
           }));
           allPackProducts = allPackProducts.concat(products);
@@ -86,7 +86,7 @@ router.get("/", async (req, res) => {
           packObj = {
             id: pack.pack_id,
             name: pack.pack_name,
-            image: pack.pack_images ? JSON.parse(pack.pack_images)[0] : null,
+            image: pack.pack_images ? typeof pack.pack_images === 'string' ? JSON.parse(pack.pack_images)[0] : pack.pack_images[0] : null,
             price: pack.pack_price,
             discount: pack.pack_discount,
             description: pack.pack_description,
@@ -105,7 +105,7 @@ router.get("/", async (req, res) => {
               [order.wilaya]
             );
             if (wilayaRows.length > 0) {
-              const shippingPrices = JSON.parse(wilayaRows[0].shipping_prices);
+              const shippingPrices = typeof wilayaRows[0].shipping_prices === 'string' ? JSON.parse(wilayaRows[0].shipping_prices) : wilayaRows[0].shipping_prices;
               shipping = shippingPrices[order.delivery_type] || 0;
             }
           }
@@ -128,7 +128,7 @@ router.get("/", async (req, res) => {
             const variantsForProduct = variants.filter(v => v.product_id == pid);
             const attrAgg = {};
             variantsForProduct.forEach(variant => {
-              const attrs = variant.attributes ? JSON.parse(variant.attributes) : {};
+              const attrs = variant.attributes ? typeof variant.attributes === 'string' ? JSON.parse(variant.attributes) : variant.attributes : {};
               Object.entries(attrs).forEach(([attrName, attrValue]) => {
                 if (!attrAgg[attrName]) attrAgg[attrName] = {};
                 if (!attrAgg[attrName][attrValue]) attrAgg[attrName][attrValue] = 0;
@@ -163,11 +163,11 @@ router.get("/", async (req, res) => {
             .map((op) => ({
               productId: op.product_id,
               quantity: op.quantity,
-              attributes: op.attributes ? JSON.parse(op.attributes) : {},
+              attributes: op.attributes ? typeof op.attributes === "string" ? JSON.parse(op.attributes) : op.attributes : {},
               product_attr: productAttrsById[op.product_id] || {},
               name: op.product_name,
               price: op.product_price,
-              image: op.product_images ? JSON.parse(op.product_images)[0] : null,
+              image: op.product_images ? typeof op.product_images === 'string' ? JSON.parse(op.product_images)[0] : op.product_images[0] : null,
             })),
         });
       }
@@ -189,7 +189,7 @@ router.get("/", async (req, res) => {
             [order.wilaya]
           );
           if (wilayaRows.length > 0) {
-            const shippingPrices = JSON.parse(wilayaRows[0].shipping_prices);
+            const shippingPrices =typeof wilayaRows[0].shipping_prices === 'string' ? JSON.parse(wilayaRows[0].shipping_prices) : wilayaRows[0].shipping_prices ;
             shipping = shippingPrices[order.delivery_type] || 0;
           }
         }
@@ -320,7 +320,7 @@ router.patch("/:id", async (req, res) => {
                 const [packProducts] = await connection.query('SELECT * FROM order_pack_products WHERE order_id = ? AND pack_id = ?', [orderId, pack.pack_id]);
                 for (const prod of packProducts) {
                     const qtyToIncrease = (pack.quantity || 1) * (prod.quantity || 1);
-                    const attributes = prod.attributes ? JSON.parse(prod.attributes) : {};
+                    const attributes = prod.attributes ? typeof prod.attributes ? JSON.parse(prod.attributes): prod.attributes : {};
                     if (Object.keys(attributes).length > 0) {
                         await connection.query('UPDATE variants SET stock = stock + ? WHERE product_id = ? AND attributes = ?', [qtyToIncrease, prod.product_id, JSON.stringify(attributes)]);
                     } else {
@@ -331,7 +331,7 @@ router.patch("/:id", async (req, res) => {
         } else {
             const [orderProducts] = await connection.query('SELECT * FROM order_products WHERE order_id = ?', [orderId]);
             for (const prod of orderProducts) {
-                const attributes = prod.attributes ? JSON.parse(prod.attributes) : {};
+                const attributes = prod.attributes ? typeof prod.attributes === 'string' ? JSON.parse(prod.attributes): prod.attributes : {};
                 if (Object.keys(attributes).length > 0) {
                     await connection.query('UPDATE variants SET stock = stock + ? WHERE product_id = ? AND attributes = ?', [prod.quantity, prod.product_id, JSON.stringify(attributes)]);
                 } else {
