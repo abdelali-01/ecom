@@ -58,9 +58,24 @@ const storeSlides: StoreSlide[] = [
       fr: "Découvrez des produits incroyables à des prix imbattables",
       ar: "اكتشف منتجات رائعة بأسعار مميزة"
     },
-    image: "/images/store/1.webp",
+    image: "/images/store/1.jpg",
     isStoreSlide: true
   },
+  {
+    id: 1,
+    name: {
+      en: "We offer the finest types of honey",
+      fr: "Nous offrons les meilleures variétés de miel",
+      ar: "نوفر اجود انواع العسل"
+    },
+    description: {
+      en: "The best and finest types of honey in our store at special prices",
+      fr: "Les meilleures variétés de miel dans notre boutique à des prix exceptionnels",
+      ar: "افضل و اجود انواع العسل في متجرنا بأسعار مميزة"
+    },
+    image: "/images/store/2.jpg",
+    isStoreSlide: true
+  }
 ];
 
 export default function Hero() {
@@ -172,7 +187,7 @@ export default function Hero() {
                   {currentSlideData.description[i18n.language]}
                 </p>
                 <Link
-                  href="/products"
+                  href="/shop"
                   className="inline-block bg-brand-500 text-white px-8 py-3 rounded-full font-semibold text-lg shadow-lg hover:bg-brand-600 transition-colors"
                 >
                  {t('home.hero.cta')}

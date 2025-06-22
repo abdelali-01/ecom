@@ -8,7 +8,7 @@ import { useTranslation } from 'react-i18next';
 export default function VideoShowcase() {
   const [isPlaying, setIsPlaying] = useState(false);
   const { i18n } = useTranslation();
-  const videoId = "t-j3dXD2vA8"; // Your YouTube video ID
+  const videoId = "C2lSy04yZno"; // Your YouTube video ID
 
   const content = {
     title: {
@@ -54,7 +54,7 @@ export default function VideoShowcase() {
               ) : (
                 <div className="absolute top-0 left-0 w-full h-full">
                   <Image
-                    src="/video-thumbnail.png"
+                    src="/images/store/1.jpg"
                     alt="Video thumbnail"
                     fill
                     className="object-cover"

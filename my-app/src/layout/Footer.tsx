@@ -4,6 +4,7 @@ import Link from 'next/link'
 import React from 'react'
 import { Facebook, Instagram, Linkedin } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import Image from 'next/image';
 
 const socialLinks = [
   {
@@ -37,7 +38,7 @@ export default function Footer() {
           {/* Logo */}
           <div className="flex items-center">
             <Link href="/" className="text-2xl font-bold text-gray-900 dark:text-white">
-              Devali
+              <Image src={'/logo.png'} width={60} height={60} alt='bioasis logo' />
             </Link>
           </div>
 

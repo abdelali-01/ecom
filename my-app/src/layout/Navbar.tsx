@@ -38,10 +38,10 @@ export default function Navbar() {
   return (
     <nav className="bg-white dark:bg-gray-900 shadow-sm sticky top-0 z-50">
       <div className="container mx-auto px-4">
-      <div className="flex items-center justify-between h-16">
+        <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link href="/" className="flex-shrink-0">
-            <h3 className="text-xl md:text-3xl dark:text-white">Devali</h3>
+            <Image src={'/logo.png'} width={60} height={60} alt='bioasis logo' />
           </Link>
 
           {/* Desktop Navigation */}
@@ -55,9 +55,9 @@ export default function Navbar() {
                 {item.name}
               </Link>
             ))}
-            
-        </div>
-        
+
+          </div>
+
           {/* Right Side Icons */}
           <div className="flex items-center space-x-4">
             {/* Desktop Language and Theme Switchers */}
@@ -101,7 +101,7 @@ export default function Navbar() {
               ) : (
                 <Bars3Icon className="h-6 w-6" />
               )}
-          </button>
+            </button>
           </div>
         </div>
 
@@ -119,7 +119,7 @@ export default function Navbar() {
                   {item.name}
                 </Link>
               ))}
-              
+
               {/* Language and Theme Switchers for Mobile */}
               <div className="border-t border-gray-200 dark:border-gray-700 pt-3 mt-3">
                 <div className="flex items-center justify-between px-3 py-2">
@@ -141,7 +141,7 @@ export default function Navbar() {
             </div>
           </div>
         )}
-    </div>
-  </nav>
+      </div>
+    </nav>
   );
 }

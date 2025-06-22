@@ -16,6 +16,11 @@ const nextConfig: NextConfig = {
         port: "5000",
         pathname: "/uploads/**",
       },
+      {
+        protocol: "https",
+        hostname: "ecom-1neb.onrender.com",
+        pathname: "/uploads/**",
+      },
     ],
   },
   webpack(config) {
