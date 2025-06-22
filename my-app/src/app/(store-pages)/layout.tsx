@@ -29,7 +29,7 @@ export default function RootLayout({
             <CartSidebarProvider>
                 <CartSidebar />
                 <Navbar />
-                <main className='px-3 md:px-0'>
+                <main>
                     {children}
                 </main>
                 <Footer />

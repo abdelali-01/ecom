@@ -53,10 +53,6 @@ export default function SignUpForm() {
       newErrors.username = 'Admin name is required';
     }
     
-    if (!user.phone.trim()) {
-      newErrors.phone = 'Phone number is required';
-    }
-    
     if (!user.email.trim()) {
       newErrors.email = 'Email is required';
     } else if (!/\S+@\S+\.\S+/.test(user.email)) {
@@ -129,14 +125,13 @@ export default function SignUpForm() {
                   {/* Contact Information */}
                   <div className="sm:col-span-1">
                     <Label>
-                      Phone number<span className="text-error-500">*</span>
+                      Phone number
                     </Label>
                     <Input
                       type="text"
                       id="phone"
                       name="phone"
                       placeholder="Enter your admin phone"
-                      required
                       value={user.phone}
                       onChange={handleChange}
                       className={errors.phone ? 'border-error-500' : ''}

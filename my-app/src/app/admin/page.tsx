@@ -22,7 +22,7 @@ export default function Dashboard() {
     dispatch(handleFetchCalendarItems());
   }, [dispatch]);
 
-  if (!user || user.role === 'manager') return null;
+  if (!user || user.role !== 'super') return null;
 
   if (loading) {
     return (

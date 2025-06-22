@@ -11,7 +11,7 @@ const isAuthenticated = (req, res, next) => {
 
 // Middleware to check for specific roles
 const hasRole = (roles) => (req, res, next) => {
-    if (roles.includes(req.user.role)) {
+    if (req.user && roles.includes(req.user?.role)) {
         return next();
     }
     res.status(403).json({ message: 'Forbidden' });

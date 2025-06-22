@@ -26,14 +26,6 @@ type NavItem = {
   subItems?: { name: string; path: string; pro?: boolean; new?: boolean }[];
 };
 
-const fetchUnseenMessages = async () => {
-  try {
-    const res =await axios.get(`${process.env.NEXT_PUBLIC_SERVER}/api/messages/unseen/count` , {withCredentials : true});
-    return res.data.unseenCount ;
-  } catch (error) {
-    console.error('error fetching unseen messages',error);
-  }
-}
 
 const navItems: NavItem[] = [
   {
@@ -67,10 +59,37 @@ const navItems: NavItem[] = [
   // },
 ];
 
+const navAdminItems: NavItem[] = [
+  {
+    icon: <ListIcon />,
+    name: "Orders",
+    path: "/admin/orders",
+  },
+  {
+    name: "Manage",
+    icon: <TaskIcon />,
+    subItems: [{ name: "Products & Categories", path: "/admin/products" },
+    { name: "Delivery settings", path: '/admin/delivery-settings' },
+    {name : "Offers & Code promo" , path  : "/admin/offers"},
+    ],
+  },
+  {
+    icon: <ChatIcon />,
+    name: "Messages",
+    path: "/admin/messages",
+    count : true
+  },
+  // {
+  //   icon: <CalenderIcon />,
+  //   name: "Calendar",
+  //   path: "/admin/calendar",
+  // },
+];
+
 const navManagerItems: NavItem[] = [
   {
     icon: <ListIcon />,
-    name: "Tampon orders",
+    name: "Orders",
     path : "/admin/orders"
   },
   // {
@@ -93,15 +112,6 @@ const othersItems: NavItem[] = [
   },
 ];
 
-const othersAdminItems: NavItem[] = [
-  {
-    icon: <PlugInIcon />,
-    name: "Authentication",
-    subItems: [
-      { name: "Register Client", path: "/admin/register" },
-    ],
-  },
-];
 
 const AppSidebar: React.FC = () => {
   const { user } = useSelector((state: RootState) => state.auth);
@@ -372,10 +382,11 @@ const AppSidebar: React.FC = () => {
                   <HorizontaLDots />
                 )}
               </h2>
-              {user && user.role !== 'manager' ? renderMenuItems(navItems, "main") : renderMenuItems(navManagerItems, "main")}
+              {user && user.role === 'super' ? renderMenuItems(navItems, "main") : user?.role === 'sub-super' ? renderMenuItems(navAdminItems , 'main') : renderMenuItems(navManagerItems, "main")}
             </div>
 
-            {user && user.role !== 'manager' && <div className="">
+
+            {user && user.role === 'super' && <div className="">
               <h2
                 className={`mb-4 text-xs uppercase flex leading-[20px] text-gray-400 ${!isExpanded && !isHovered
                   ? "lg:justify-center"
@@ -388,9 +399,8 @@ const AppSidebar: React.FC = () => {
                   <HorizontaLDots />
                 )}
               </h2>
-              {user.role === 'super' ? renderMenuItems(othersItems, "others") : renderMenuItems(othersAdminItems, "others")}
+              {user.role === 'super' && renderMenuItems(othersItems, "others")}
             </div>}
-
           </div>
         </nav>
       </div>
