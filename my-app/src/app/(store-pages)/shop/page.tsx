@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import ShopHeader from '@/components/shop/ShopHeader';
 import FilterSidebar from '@/components/shop/FilterSidebar';
 import ProductGrid from '@/components/shop/ProductGrid';
@@ -8,6 +8,7 @@ import { AppDispatch, RootState } from '@/store/store';
 import { Product } from '@/components/modals/ProductModal';
 import { fetchProducts } from '@/store/products/productHandler';
 import { useSearchParams } from 'next/navigation';
+import Loader from '@/components/ui/load/Loader';
 
 // Filter types
 type Filter = {
@@ -20,7 +21,8 @@ type Filter = {
   inStock: boolean;
 };
 
-export default function ShopPage() {
+// Main shop content component that uses useSearchParams
+function ShopContent() {
   const { products, categories } = useSelector((state: RootState) => state.products)
   const dispatch = useDispatch<AppDispatch>();
   const searchParams = useSearchParams();
@@ -106,30 +108,49 @@ export default function ShopPage() {
   }, [dispatch, products]);
 
   return (
-    <>
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-        <ShopHeader
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
-          onFilterToggle={() => setIsFilterOpen(!isFilterOpen)}
-        />
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <ShopHeader
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        onFilterToggle={() => setIsFilterOpen(!isFilterOpen)}
+      />
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="flex flex-col lg:flex-row gap-8">
-            <FilterSidebar
-              filters={filters}
-              onFilterChange={setFilters}
-              isOpen={isFilterOpen}
-            />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="flex flex-col lg:flex-row gap-8">
+          <FilterSidebar
+            filters={filters}
+            onFilterChange={setFilters}
+            isOpen={isFilterOpen}
+          />
 
-            <ProductGrid
-              products={filteredProducts}
-              sort={filters.sort}
-              onSortChange={(sort) => setFilters(prev => ({ ...prev, sort: sort as Filter['sort'] }))}
-            />
-          </div>
+          <ProductGrid
+            products={filteredProducts}
+            sort={filters.sort}
+            onSortChange={(sort) => setFilters(prev => ({ ...prev, sort: sort as Filter['sort'] }))}
+          />
         </div>
       </div>
-    </>
+    </div>
+  );
+}
+
+// Loading component
+function ShopLoading() {
+  return (
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-amber-500 mx-auto"></div>
+        <p className="mt-4 text-gray-600 dark:text-gray-400"><Loader/></p>
+      </div>
+    </div>
+  );
+}
+
+// Main shop page component with Suspense boundary
+export default function ShopPage() {
+  return (
+    <Suspense fallback={<ShopLoading />}>
+      <ShopContent />
+    </Suspense>
   );
 } 
