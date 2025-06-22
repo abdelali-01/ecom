@@ -48,7 +48,7 @@ export default function ProductModal({ closeModal, selectedItem }: ProductModalP
         description: '',
         presentation: '',
         price: 0,
-        prevPrice: undefined,
+        prevPrice: 0,
         quantity: 0,
         images: [],
         show_on_homepage: false,
@@ -219,7 +219,7 @@ export default function ProductModal({ closeModal, selectedItem }: ProductModalP
                                 <Label className="font-semibold text-gray-700 dark:text-gray-400">Previous Price</Label>
                                 <Input
                                     type="number"
-                                    value={product.prevPrice || ''}
+                                    value={product.prevPrice}
                                     onChange={e => setProduct(prev => ({ ...prev, prevPrice: Number(e.target.value) }))}
                                     className="w-full placeholder-gray-500"
                                     placeholder="Enter previous price"
@@ -235,6 +235,7 @@ export default function ProductModal({ closeModal, selectedItem }: ProductModalP
                                 className="w-full placeholder-gray-500"
                                 min='0'
                                 placeholder="Enter quantity"
+                                required
                             />
                         </div>
                         <div className="flex items-center gap-3 mt-2">

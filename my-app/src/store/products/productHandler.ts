@@ -35,10 +35,11 @@ export const addProduct = (product: Product) => async (dispatch: AppDispatch) =>
         formData.append('name', product.name);
         formData.append('description', product.description);
         formData.append('price', product.price.toString());
-        formData.append('prevPrice' , product?.prevPrice.toString());
         formData.append('show_on_homepage' , product.show_on_homepage);
         formData.append('category_id', product.category_id.toString());
-        formData.append('quantity', product.quantity.toString());
+        if(product.quantity) formData.append('quantity', product.quantity.toString());
+        if(product.prevPrice) formData.append('prevPrice' , product?.prevPrice.toString());
+        if(product.presentation) formData.append('presentation' , product.presentation)
         
         // Add attributes if they exist
         if (product.attributes) {
@@ -90,9 +91,7 @@ export const addProduct = (product: Product) => async (dispatch: AppDispatch) =>
     }
 };
 
-export const updateProduct = (productId: number, product: Product) => async (dispatch: AppDispatch) => {
-    console.log(product);
-    
+export const updateProduct = (productId: number, product: Product) => async (dispatch: AppDispatch) => {    
     try {
         const formData = new FormData();
         
@@ -106,11 +105,12 @@ export const updateProduct = (productId: number, product: Product) => async (dis
         // Add product data
         formData.append('name', product.name);
         if(product.description) formData.append('description', product.description);
-        formData.append('prevPrice' , product?.prevPrice.toString());
         formData.append('show_on_homepage' , product.show_on_homepage);
         formData.append('price', product.price.toString());
         formData.append('category_id', product.category_id.toString());
         formData.append('quantity', product.quantity.toString());
+        if(product.prevPrice) formData.append('prevPrice' , product?.prevPrice.toString());
+        if(product.presentation) formData.append('presentation' , product.presentation)
 
         
         // Add attributes if they exist

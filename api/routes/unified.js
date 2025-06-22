@@ -116,7 +116,7 @@ router.post("/", upload.array('images', 5), async (req, res) => {
     
     const [result] = await pool.query(
       "INSERT INTO products (name, description, price, prevPrice, quantity, category_id, images, show_on_homepage, presentation) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-      [name, description, Number(price), prevPrice ? Number(prevPrice) : null, Number(quantity), Number(category_id), JSON.stringify(uploadedImages), show_on_homepage == 'true' ? 1 : 0, presentation || null]
+      [name, description, Number(price), prevPrice ? Number(prevPrice) : 0, Number(quantity), Number(category_id), JSON.stringify(uploadedImages), show_on_homepage == 'true' ? 1 : 0, presentation || '']
     );
 
     // If attributes are provided, create variants
@@ -230,7 +230,7 @@ router.put("/:id", upload.array('new_images', 5), async (req, res) => {
     
     await pool.query(
       "UPDATE products SET name = ?, description = ?, price = ?, prevPrice = ?, quantity = ?, category_id = ?, images = ?, show_on_homepage = ?, presentation = ? WHERE id = ?",
-      [name, description, Number(price), prevPrice ? Number(prevPrice) : null, Number(quantity), Number(category_id), JSON.stringify(updatedImages), show_on_homepage == 'true' ? 1 : 0, presentation || null, req.params.id]
+      [name, description, Number(price), prevPrice ? Number(prevPrice) : 0, Number(quantity), Number(category_id), JSON.stringify(updatedImages), show_on_homepage == 'true' ? 1 : 0, presentation || '', req.params.id]
     );
 
     // Update variants if attributes are provided
