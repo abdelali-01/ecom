@@ -30,7 +30,7 @@ function ShopContent() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filters, setFilters] = useState<Filter>({
     category: [],
-    price: { min: 0, max: 10000 },
+    price: { min: 0, max: 1000000 },
     sort: 'newest',
     inStock: false
   });

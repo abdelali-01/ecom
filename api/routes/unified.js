@@ -312,7 +312,7 @@ router.put("/:id", upload.array("new_images", 5), async (req, res) => {
         Number(quantity),
         Number(category_id),
         JSON.stringify(updatedImages),
-        show_on_homepage == "true" ? 1 : 0,
+        (show_on_homepage == "true" || show_on_homepage == 1) ? 1 : 0,
         presentation || "",
         req.params.id,
       ]
