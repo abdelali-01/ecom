@@ -348,12 +348,26 @@ const ProductOrderForm = ({ products, productId, productPrice, setProductPrice, 
     const option = attribute.options.find(o => o.value === value);
     if (!option) return;
 
-    const newPrice = option.price;
+    const updatedAttributes = {
+      ...formData.products[0].attributes,
+      [attrName]: value
+    };
+  
+    // ✅ Get prices for all selected attribute values
+    const selectedOptionPrices = Object.entries(updatedAttributes)
+      .map(([name, val]) => {
+        const attr = product.attributes?.find(a => a.name === name);
+        const opt = attr?.options.find(o => o.value === val);
+        return opt?.price || 0;
+      });
+  
+    const maxPrice = Math.max(...selectedOptionPrices);
+  
 
     setFormData(prev => ({
       ...prev,
       products: prev.products.map((p, i) => {
-        setPrice(newPrice > p.price ? newPrice : p.price)
+        setPrice(maxPrice)
 
         return (i === 0
           ? {
@@ -362,7 +376,7 @@ const ProductOrderForm = ({ products, productId, productPrice, setProductPrice, 
               ...p.attributes,
               [attrName]: value,
             },
-            price: newPrice > p.price ? newPrice : p.price,
+            price: maxPrice,
         }
           : p)
       }),
@@ -395,6 +409,22 @@ const ProductOrderForm = ({ products, productId, productPrice, setProductPrice, 
     const option = attribute.options.find(o => o.value === value);
     if (!option) return;
 
+      // Get updated attributes for this product
+  const updatedAttributes = {
+    ...formData.products[idx].attributes,
+    [attr]: value
+  };
+
+  // Collect selected option prices
+  const selectedOptionPrices = Object.entries(updatedAttributes).map(([name, val]) => {
+    const attrObj = product.attributes?.find(a => a.name === name);
+    const option = attrObj?.options.find(o => o.value === val);
+    return option?.price || 0;
+  });
+
+  // Get the highest price from selected options
+  const maxPrice = Math.max(...selectedOptionPrices);
+
     setFormData(prev => ({
       ...prev,
       products: prev.products.map((p, i) =>
@@ -405,7 +435,7 @@ const ProductOrderForm = ({ products, productId, productPrice, setProductPrice, 
               ...p.attributes,
               [attr]: value,
             },
-            price: (p.price > option.price) ? p.price : option.price
+            price: maxPrice
           }
           : p
       ),
