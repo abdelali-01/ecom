@@ -196,7 +196,7 @@ router.post("/", upload.array("images", 5), async (req, res) => {
       images: uploadedImages,
       show_on_homepage: show_on_homepage === "1" ? 1 : 0,
       presentation,
-      attributes: attributes ? JSON.parse(attributes) : {},
+      attributes: attributes ? typeof attributes === 'string' ? JSON.parse(attributes) : attributes : {},
     });
   } catch (error) {
     // If there's an error, delete any uploaded files
@@ -326,7 +326,7 @@ router.put("/:id", upload.array("new_images", 5), async (req, res) => {
       ]);
 
       // Create new variants
-      const parsedAttributes = JSON.parse(attributes);
+      const parsedAttributes =typeof attributes === 'string' ? JSON.parse(attributes) : attributes;
       for (const attr of parsedAttributes) {
         for (const option of attr.options) {
           const variantPrice = option.price && option.price > 0 ? option.price : Number(price);
@@ -356,7 +356,7 @@ router.put("/:id", upload.array("new_images", 5), async (req, res) => {
       images: updatedImages,
       show_on_homepage: show_on_homepage == "true" ? 1 : 0,
       presentation,
-      attributes: attributes ? JSON.parse(attributes) : {},
+      attributes: attributes ? typeof attributes === 'string' ? JSON.parse(attributes) : attributes : {},
     });
   } catch (error) {
     // If there's an error, delete any newly uploaded files
