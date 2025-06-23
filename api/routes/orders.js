@@ -398,7 +398,7 @@ router.patch("/:id", async (req, res) => {
           for (const prod of packProducts) {
             const qtyToIncrease = (pack.quantity || 1) * (prod.quantity || 1);
             const attributes = prod.attributes
-              ? typeof prod.attributes
+              ? typeof prod.attributes === 'string'
                 ? JSON.parse(prod.attributes)
                 : prod.attributes
               : {};

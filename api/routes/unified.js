@@ -50,7 +50,7 @@ router.get("/", async (req, res) => {
       // Initialize attributes object
       const attributesMap = {};
       productVariants.forEach((variant) => {
-        const variantAttrs = JSON.parse(variant.attributes || "{}");
+        const variantAttrs = typeof variant.attributes === 'string' ? JSON.parse(variant.attributes || "{}") : variant.attributes;
         Object.entries(variantAttrs).forEach(([key, value]) => {
           if (!attributesMap[key]) attributesMap[key] = [];
           attributesMap[key].push({
@@ -166,7 +166,7 @@ router.post("/", upload.array("images", 5), async (req, res) => {
 
     // If attributes are provided, create variants
     if (attributes) {
-      const parsedAttributes = JSON.parse(attributes);
+      const parsedAttributes = typeof attributes === 'string' ? JSON.parse(attributes) : attributes;
       for (const attr of parsedAttributes) {
         for (const option of attr.options) {
           const variantPrice = option.price && option.price > 0 ? option.price : Number(price);
@@ -291,7 +291,7 @@ router.put("/:id", upload.array("new_images", 5), async (req, res) => {
 
     // If existing_images is provided, use it instead of the current images
     if (existing_images) {
-      existingImages = JSON.parse(existing_images);
+      existingImages = typeof existing_images === 'string' ? JSON.parse(existing_images) : existing_images;
     }
 
     // Get new uploaded file paths and normalize them
