@@ -12,7 +12,9 @@ import {
   Globe,
   Star,
   Zap,
-  CheckCircle
+  CheckCircle,
+  Truck,
+  ThumbsUp
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -50,28 +52,28 @@ const AboutSection = () => {
         ar: "مهمتنا"
       },
       description: {
-        en: "To offer premium natural honey sourced from trusted beekeepers, ensuring health, purity, and satisfaction in every drop.",
-        fr: "Offrir un miel naturel de qualité, issu d'apiculteurs de confiance, garantissant santé, pureté et satisfaction dans chaque goutte.",
-        ar: "تقديم عسل طبيعي عالي الجودة من مصادر موثوقة، يضمن الصحة والنقاء والرضا في كل قطرة."
+        en: "To provide reliable, high-quality products that enhance everyday life and deliver great value to our customers.",
+        fr: "Fournir des produits fiables et de haute qualité qui améliorent la vie quotidienne et offrent une réelle valeur à nos clients.",
+        ar: "تقديم منتجات موثوقة وعالية الجودة تعزز الحياة اليومية وتوفر قيمة حقيقية لعملائنا."
       },
       icon: Target,
       color: "text-blue-600",
       bgColor: "bg-blue-50 dark:bg-blue-900/20",
       points: {
         en: [
-          "Pure and natural ingredients",
-          "Support for local beekeepers",
-          "Commitment to customer well-being"
+          "Trusted product selection",
+          "Focus on customer satisfaction",
+          "Fair and transparent service"
         ],
         fr: [
-          "Ingrédients purs et naturels",
-          "Soutien aux apiculteurs locaux",
-          "Engagement pour le bien-être du client"
+          "Sélection de produits fiables",
+          "Satisfaction client au cœur de nos priorités",
+          "Service équitable et transparent"
         ],
         ar: [
-          "مكونات طبيعية ونقية",
-          "دعم النحالين المحليين",
-          "الالتزام بصحة ورضا العملاء"
+          "اختيار منتجات موثوقة",
+          "التركيز على رضا العملاء",
+          "خدمة عادلة وشفافة"
         ]
       }
     },
@@ -83,28 +85,28 @@ const AboutSection = () => {
         ar: "رؤيتنا"
       },
       description: {
-        en: "To become a trusted name in the natural honey industry by maintaining unmatched quality and a deep respect for nature.",
-        fr: "Devenir une marque de confiance dans le domaine du miel naturel en maintenant une qualité inégalée et un profond respect de la nature.",
-        ar: "أن نصبح علامة موثوقة في مجال العسل الطبيعي من خلال الحفاظ على جودة لا مثيل لها واحترام عميق للطبيعة."
+        en: "To become a go-to destination for quality products and dependable service, building long-term relationships with our customers.",
+        fr: "Devenir une destination incontournable pour des produits de qualité et un service fiable, en construisant des relations durables avec nos clients.",
+        ar: "أن نكون وجهتك الأولى للمنتجات عالية الجودة والخدمة الموثوقة، من خلال بناء علاقات طويلة الأمد مع عملائنا."
       },
       icon: Eye,
       color: "text-purple-600",
       bgColor: "bg-purple-50 dark:bg-purple-900/20",
       points: {
         en: [
-          "Leading innovation in honey production",
-          "Expanding awareness of natural health",
-          "Building a loyal customer base"
+          "Customer-first approach",
+          "Consistent product excellence",
+          "Growth through trust and service"
         ],
         fr: [
-          "Innover dans la production de miel",
-          "Sensibiliser à la santé naturelle",
-          "Construire une clientèle fidèle"
+          "Approche axée sur le client",
+          "Excellence constante des produits",
+          "Croissance grâce à la confiance et au service"
         ],
         ar: [
-          "الريادة في تطوير صناعة العسل",
-          "نشر الوعي بالصحة الطبيعية",
-          "بناء قاعدة عملاء وفية"
+          "نهج يركز على العميل",
+          "تميز دائم في المنتجات",
+          "النمو من خلال الثقة والخدمة"
         ]
       }
     },
@@ -116,61 +118,80 @@ const AboutSection = () => {
         ar: "قيمنا"
       },
       description: {
-        en: "Integrity, sustainability, and passion for quality guide everything we do at our honey store.",
-        fr: "L'intégrité, la durabilité et la passion pour la qualité guident tout ce que nous faisons dans notre boutique de miel.",
-        ar: "النزاهة، الاستدامة، والشغف بالجودة هي المبادئ التي توجه كل ما نقوم به في متجر العسل الخاص بنا."
+        en: "We believe in integrity, quality, and respect — values that drive every part of our business.",
+        fr: "Nous croyons en l'intégrité, la qualité et le respect — des valeurs qui guident chaque aspect de notre activité.",
+        ar: "نؤمن بالنزاهة والجودة والاحترام — وهي القيم التي تقود كل جانب من جوانب عملنا."
       },
       icon: Heart,
       color: "text-red-600",
       bgColor: "bg-red-50 dark:bg-red-900/20",
       points: {
         en: [
-          "Integrity in every step",
-          "Eco-friendly practices",
-          "Passion for excellence"
+          "Honest business practices",
+          "Commitment to quality",
+          "Respect for our customers and team"
         ],
         fr: [
-          "Intégrité à chaque étape",
-          "Pratiques respectueuses de l'environnement",
-          "Passion pour l'excellence"
+          "Pratiques commerciales honnêtes",
+          "Engagement envers la qualité",
+          "Respect des clients et de l'équipe"
         ],
         ar: [
-          "النزاهة في كل خطوة",
-          "ممارسات صديقة للبيئة",
-          "شغف بالتميز"
+          "ممارسات تجارية نزيهة",
+          "الالتزام بالجودة",
+          "الاحترام لعملائنا وفريقنا"
         ]
       }
     }
   ];
+  
 
   const storeDescription: Record<string, string> = {
-    ar: "نقدم لك أجود أنواع العسل الطبيعي، مستخلص من أفضل المناحل وبجودة عالية. اكتشف فوائد العسل وتمتع بطعم أصيل يعكس نقاء الطبيعة.",
-    en: "We offer you the finest natural honey, sourced from the best beehives and crafted with top quality. Discover the benefits of honey and enjoy an authentic taste that reflects the purity of nature.",
-    fr: "Nous vous proposons le meilleur miel naturel, issu des meilleures ruches et de qualité supérieure. Découvrez les bienfaits du miel et savourez un goût authentique qui reflète la pureté de la nature."
+    en: "We are dedicated to offering high-quality products sourced from trusted partners, ensuring a reliable and satisfying shopping experience. Our goal is to combine quality, value, and customer care to meet your everyday needs.",
+    fr: "Nous nous engageons à offrir des produits de haute qualité issus de partenaires de confiance, pour garantir une expérience d'achat fiable et satisfaisante. Notre objectif est d’allier qualité, valeur et service client pour répondre à vos besoins quotidiens.",
+    ar: "نحن ملتزمون بتقديم منتجات عالية الجودة من مصادر موثوقة، لضمان تجربة تسوق موثوقة ومرضية. هدفنا هو الجمع بين الجودة والقيمة والاهتمام بالعميل لتلبية احتياجاتك اليومية."
   };
+  
 
   const features = [
     {
       icon: Shield,
-      title: { en: "100% Natural", fr: "100% Naturel", ar: "طبيعي 100%" },
-      description: { en: "Pure honey without additives", fr: "Miel pur sans additifs", ar: "عسل نقي بدون إضافات" }
+      title: { en: "Trusted Quality", fr: "Qualité Fiable", ar: "جودة موثوقة" },
+      description: {
+        en: "We select only the best products and partners.",
+        fr: "Nous sélectionnons uniquement les meilleurs produits et partenaires.",
+        ar: "نختار أفضل المنتجات وأفضل الشركاء فقط."
+      }
     },
     {
-      icon: Leaf,
-      title: { en: "Eco-Friendly", fr: "Écologique", ar: "صديق للبيئة" },
-      description: { en: "Sustainable beekeeping practices", fr: "Pratiques apicoles durables", ar: "ممارسات نحل مستدامة" }
+      icon: Truck,
+      title: { en: "Fast Delivery", fr: "Livraison Rapide", ar: "توصيل سريع" },
+      description: {
+        en: "Get your orders on time, every time.",
+        fr: "Recevez vos commandes à temps, à chaque fois.",
+        ar: "احصل على طلباتك في الوقت المحدد في كل مرة."
+      }
     },
     {
-      icon: Award,
-      title: { en: "Premium Quality", fr: "Qualité Premium", ar: "جودة عالية" },
-      description: { en: "Highest quality standards", fr: "Normes de qualité les plus élevées", ar: "أعلى معايير الجودة" }
+      icon: ThumbsUp,
+      title: { en: "Customer Satisfaction", fr: "Satisfaction Client", ar: "رضا العملاء" },
+      description: {
+        en: "Your satisfaction is our top priority.",
+        fr: "Votre satisfaction est notre priorité.",
+        ar: "رضاك هو أولويتنا القصوى."
+      }
     },
     {
       icon: Users,
-      title: { en: "Local Support", fr: "Soutien Local", ar: "دعم محلي" },
-      description: { en: "Supporting local beekeepers", fr: "Soutenir les apiculteurs locaux", ar: "دعم النحالين المحليين" }
+      title: { en: "Community Support", fr: "Soutien Communautaire", ar: "دعم المجتمع" },
+      description: {
+        en: "We support local businesses and value connections.",
+        fr: "Nous soutenons les entreprises locales et valorisons les liens humains.",
+        ar: "ندعم المشاريع المحلية ونقدّر العلاقات الإنسانية."
+      }
     }
   ];
+  
 
   return (
     <section className="py-16 lg:py-24 bg-gradient-to-br from-amber-50 via-white to-orange-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
@@ -197,11 +218,9 @@ const AboutSection = () => {
           <div className="absolute inset-0 bg-black/10"></div>
           <div className="relative z-10">
             <div className="flex items-center justify-center mb-6">
-              <Star className="w-12 h-12 text-yellow-300 mr-4" />
               <h2 className="text-4xl md:text-5xl font-extrabold">
-                Bioasis
+                Store name
               </h2>
-              <Star className="w-12 h-12 text-yellow-300 ml-4" />
             </div>
             <p className="text-lg md:text-xl leading-relaxed max-w-4xl mx-auto">
               {storeDescription[i18n.language as keyof typeof storeDescription]}
