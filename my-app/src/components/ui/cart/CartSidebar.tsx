@@ -1,5 +1,5 @@
 'use client'
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '@/store/store';
 import { removeFromCart, updateQuantity, clearCart } from '@/store/cart/cartSlice';
@@ -8,6 +8,7 @@ import Image from 'next/image';
 import Button from '../button/Button';
 import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
+import { usePathname } from 'next/navigation';
 
 const getImageSrc = (img: string) => {
   if (!img) return '/images/placeholder.png';
@@ -20,6 +21,12 @@ const CartSidebar: React.FC = () => {
   const cart = useSelector((state: RootState) => state.cart.items);
   const dispatch = useDispatch();
   const { i18n } = useTranslation();
+
+  const pathname = usePathname();
+
+  useEffect(()=>{
+    closeCart();
+  },[pathname]);
 
   const content = {
     title: {
@@ -79,15 +86,6 @@ const CartSidebar: React.FC = () => {
                 <div className="flex-1">
                   <div className="font-semibold text-gray-900 dark:text-white">{item.name}</div>
                   <div className="text-sm text-gray-500 dark:text-gray-400">{item.price} DA</div>
-                  {item.attributes && (
-                    <div className="text-xs text-gray-400 mt-1">
-                      {Object.entries(item.attributes).map(([k, v]) => (
-                        <span key={k}>
-                          {k}: {typeof v === 'object' && v !== null ? Object.keys(v).join(', ') : String(v)}{' '}
-                        </span>
-                      ))}
-                    </div>
-                  )}
                   <div className="flex items-center gap-2 mt-2 dark:text-white">
                     <button onClick={() => dispatch(updateQuantity({ id: item.id, cartQuantity: Math.max(1, item.cartQuantity - 1), attributes: item.attributes }))} className="px-2 py-1 rounded bg-gray-200 dark:bg-gray-700">-</button>
                     <span>{item.cartQuantity}</span>

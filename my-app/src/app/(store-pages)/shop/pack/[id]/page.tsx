@@ -69,6 +69,7 @@ export default function PackPage() {
       price: p.price,
       images: full?.images || (p.image ? [p.image] : []),
       availableAttributes: full?.attributes || {},
+      attributes : p?.attributes
     };
   });
 

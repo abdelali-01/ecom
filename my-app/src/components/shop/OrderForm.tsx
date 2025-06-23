@@ -17,13 +17,14 @@ import { removeFromCart, addToCart } from "@/store/cart/cartSlice";
 import OrderSuccessModal from './OrderSuccessModal';
 import { ShoppingCart } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { Attribute } from "../modals/ProductModal";
 
 interface OrderFormProps {
   products?: {
     productId: number;
     quantity: number;
     attributes?: { [key: string]: string };
-    availableAttributes?: { [key: string]: { [key: string]: number } };
+    availableAttributes?: Attribute;
     price?: number;
     name?: string;
     images?: string[];
@@ -31,11 +32,8 @@ interface OrderFormProps {
   // For backward compatibility, allow single product props
   productId?: number;
   productPrice?: number;
-  attributes?: {
-    [key: string]: {
-      [key: string]: number;
-    };
-  };
+  setProductPrice?: (price: number) => void;
+  attributes?: Attribute;
   discount?: PromoCode | null;
   isPack?: boolean;
   packId?: number;
@@ -47,32 +45,11 @@ interface CartProduct {
   attributes?: { [key: string]: string };
   price: number;
   name?: string;
-  availableAttributes?: { [key: string]: { [key: string]: number } };
+  availableAttributes?: Attribute[];
   images?: string[];
 }
 
-interface OrderPayload {
-  name: string;
-  phone: string;
-  wilaya: string;
-  city: string;
-  address: string;
-  remarks: string;
-  delivery_type: string;
-  promoCode: string | null;
-  discountValue: number;
-  isPack?: boolean;
-  products: Array<{
-    productId: number;
-    quantity: number;
-    attributes: { [key: string]: string };
-    name?: string;
-    price: number;
-    image: string | null;
-  }>;
-}
-
-const getInitialFormData = (isCheckout: boolean, initialProducts: CartProduct[], products: any) => ({
+const getInitialFormData = (isCheckout: boolean, initialProducts: CartProduct[], products: CartProduct[]) => ({
   name: "",
   phone: "",
   wilaya: "",
@@ -85,7 +62,7 @@ const getInitialFormData = (isCheckout: boolean, initialProducts: CartProduct[],
   products: isCheckout ? initialProducts : products,
 });
 
-const ProductOrderForm = ({ products, productId, productPrice, attributes, discount, isPack, packId }: OrderFormProps) => {
+const ProductOrderForm = ({ products, productId, productPrice, setProductPrice, attributes, discount, isPack, packId, setPrice }: OrderFormProps) => {
 
   const { wilayas } = useSelector((state: RootState) => state.wilayas);
   const allProducts = useSelector((state: RootState) => state.products.products);
@@ -108,7 +85,7 @@ const ProductOrderForm = ({ products, productId, productPrice, attributes, disco
         attributes: item.attributes || {},
         price: prod?.price || 0,
         name: prod?.name,
-        availableAttributes: prod?.attributes || {},
+        availableAttributes: prod?.attributes || [],
         images: prod?.images || [],
       };
     });
@@ -119,12 +96,12 @@ const ProductOrderForm = ({ products, productId, productPrice, attributes, disco
       attributes: {},
       price: productPrice || 0,
       name: allProducts?.find(p => p.id === productId)?.name,
-      availableAttributes: attributes || {},
+      availableAttributes: attributes || [],
       images: allProducts?.find(p => p.id === productId)?.images || [],
     }];
   }
 
-  const [formData, setFormData] = useState(getInitialFormData(isCheckout, initialProducts, products));
+  const [formData, setFormData] = useState(getInitialFormData(isCheckout, initialProducts, products || []));
 
   const [cities, setCities] = useState<string[]>([]);
   const [shippingPrices, setShippingPrices] = useState<{ home: number; desk: number }>({ home: 0, desk: 0 });
@@ -231,11 +208,11 @@ const ProductOrderForm = ({ products, productId, productPrice, attributes, disco
     setAttributeError("");
     // Validate all products: if any product has attributes, ensure all are selected
     for (const p of formData.products) {
-      if (p.availableAttributes && Object.keys(p.availableAttributes).length > 0) {
-        const missing = Object.keys(p.availableAttributes).filter(attr => {
+      if (p.availableAttributes && Array.isArray(p.availableAttributes) && p.availableAttributes.length > 0) {
+        const missing = p.availableAttributes.filter(attr => {
           if (!p.attributes) return true;
-          if (!(attr in p.attributes)) return true;
-          const val = p.attributes[attr];
+          if (!(attr.name in p.attributes)) return true;
+          const val = p.attributes[attr.name];
           if (typeof val !== 'string') return true;
           if (val.trim().length === 0) return true;
           return false;
@@ -268,7 +245,7 @@ const ProductOrderForm = ({ products, productId, productPrice, attributes, disco
       products: Array<{
         productId: number;
         quantity: number;
-        attributes: { [key: string]: string };
+        attributes: Attribute;
         name?: string;
         price: number;
         image: string | null;
@@ -332,7 +309,7 @@ const ProductOrderForm = ({ products, productId, productPrice, attributes, disco
         dispatch({ type: 'cart/clearCart' });
       }
       setShowSuccessModal(true);
-      setFormData(getInitialFormData(isCheckout, initialProducts, products));
+      setFormData(getInitialFormData(isCheckout, initialProducts, products || []));
     } catch (error) {
       console.error('Error creating order:', error);
     }
@@ -362,16 +339,39 @@ const ProductOrderForm = ({ products, productId, productPrice, attributes, disco
   const decrementQuantity = () => handleQuantityChange(formData.products[0].quantity - 1);
 
   const handleAttributeChange = (attrName: string, value: string) => {
-    setFormData((prev) => ({
+    const product = allProducts?.find(p => p.id === productId);
+    if (!product || !product.attributes) return;
+
+    const attribute = product.attributes.find(a => a.name === attrName);
+    if (!attribute) return;
+
+    const option = attribute.options.find(o => o.value === value);
+    if (!option) return;
+
+    const newPrice = option.price;
+
+    setFormData(prev => ({
       ...prev,
-      products: prev.products.map((product) => ({
-        ...product,
+      products: prev.products.map((p, i) => {
+        setPrice(newPrice > p.price ? newPrice : p.price)
+
+        return (i === 0
+          ? {
+            ...p,
         attributes: {
-          ...product.attributes,
-      [attrName]: value
+              ...p.attributes,
+              [attrName]: value,
+            },
+            price: newPrice > p.price ? newPrice : p.price,
         }
-      })),
+          : p)
+      }),
     }));
+
+    if (setProductPrice) {
+      setProductPrice(newPrice);
+    }
+    setAttributeError("");
   };
 
   // Handlers for multi-product
@@ -384,15 +384,33 @@ const ProductOrderForm = ({ products, productId, productPrice, attributes, disco
 
 
   const handleProductAttrChange = (idx: number, attr: string, value: string) => {
+    const product = allProducts?.find(p => p.id === formData.products[idx].productId);
+    if (!product || !product.attributes) return;
+    
+    const originalProductPrice = allProducts?.find(p => p.id === formData.products[idx].productId)?.price || 0;
+
+    const attribute = product.attributes.find(a => a.name === attr);
+    if (!attribute) return;
+
+    const option = attribute.options.find(o => o.value === value);
+    if (!option) return;
+
     setFormData(prev => ({
       ...prev,
-      products: prev.products.map((p, i) => i === idx ? {
+      products: prev.products.map((p, i) =>
+        i === idx
+          ? {
         ...p,
-        attributes: { ...p.attributes, [attr]: value }
-      } : p)
+            attributes: {
+              ...p.attributes,
+              [attr]: value,
+            },
+            price: (p.price > option.price) ? p.price : option.price
+          }
+          : p
+      ),
     }));
   };
-
 
   const handleRemoveProduct = (idx: number) => {
     const prod = formData.products[idx];
@@ -440,7 +458,9 @@ const ProductOrderForm = ({ products, productId, productPrice, attributes, disco
 
             {(isPack || isCheckout) &&
               <div className="space-y-6">
-                {formData.products?.map((prod, idx) => (
+                {formData.products?.map((prod, idx) => {
+                  console.log(prod)
+                  return (
                   <div key={prod.productId + '-' + idx} className="relative flex flex-col sm:flex-row items-center gap-4 border-b pb-4 mb-4 bg-white dark:bg-gray-800 rounded-xl p-4 shadow group">
                     {isCheckout && <button type="button" onClick={() => handleRemoveProduct(idx)} className="absolute top-3 right-3 text-red-500 hover:text-red-700 bg-white dark:bg-gray-900 rounded-full p-1 shadow z-10">
                       <XMarkIcon className="w-5 h-5" />
@@ -459,74 +479,89 @@ const ProductOrderForm = ({ products, productId, productPrice, attributes, disco
                         <span className="text-lg font-semibold text-gray-900 dark:text-white w-8 text-center">{prod.quantity}</span>
                         <button type="button" onClick={() => handleProductQtyChange(idx, prod.quantity + 1)} className="px-3 py-1 border rounded-full text-lg font-bold bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-white">+</button>
                       </div>}
-                      {prod.availableAttributes && Object.keys(prod.availableAttributes).length > 0 && (
-                        <div className="flex flex-wrap gap-2 mb-2">
-                          {Object.entries(prod.availableAttributes).map(([attrName, attrValues]) => (
-                            <div key={attrName} className="mr-4">
-                              <span className="capitalize text-xs font-semibold dark:text-white">{attrName}:</span>
-                              <div className="flex flex-wrap gap-2 mt-1">
-                                {Object.entries(attrValues).map(([option, stock]) => (
+                        {prod.availableAttributes && prod.availableAttributes.length > 0 && (
+                          <div className="flex flex-col gap-3 mb-2">
+                            {prod.availableAttributes.map((attr, attrIdx) =>{
+                            const originalProduct = products.find(p => p.productId === prod.productId);
+                            const isAttrAlreadySelected = Object.hasOwn(originalProduct?.attributes || {}, attr.name);                            
+                            
+                            return(
+                              <div key={`${attr.name}-${attrIdx}`}>
+                                <span className="block capitalize text-sm font-semibold text-gray-700 dark:text-white mb-1">
+                                  {attr.name}:
+                                </span>
+                                <div className="flex flex-wrap gap-2">
+                                  {attr.options.map(option => (
                                   <button
-                                    key={option}
+                                      key={`${attr.name}-${option.value}`}
                                     type="button"
-                                    onClick={() => handleProductAttrChange(idx, attrName, option)}
-                                    disabled={Number(stock) === 0}
-                                    className={`px-4 py-1 rounded-full border text-sm font-medium transition-all
-                                      ${prod.attributes?.[attrName] === option
+                                      onClick={() => handleProductAttrChange(idx, attr.name, option.value)}
+                                      disabled={(Number(option.stock) === 0 )|| isAttrAlreadySelected}
+                                      className={`px-3 py-1 rounded-full border text-sm font-medium
+                                      ${prod.attributes?.[attr.name] === option.value
                                         ? 'bg-brand-500 text-white border-brand-500'
                                         : 'bg-gray-100 dark:bg-gray-900 text-gray-700 dark:text-gray-200 border-gray-300 dark:border-gray-700'}
-                                      ${Number(stock) === 0 ? 'opacity-50 cursor-not-allowed' : 'hover:border-brand-400 hover:bg-brand-50 dark:hover:bg-brand-900'}
+                                      ${(Number(option.stock) === 0) || isAttrAlreadySelected ? 'opacity-50 cursor-not-allowed' : 'hover:border-brand-400 hover:bg-brand-50 dark:hover:bg-brand-900'}
                                     `}
                                     style={{ textTransform: 'capitalize' }}
                                   >
-                                    {option}
+                                      {option.value}
                                   </button>
                                 ))}
                               </div>
                             </div>
-                          ))}
+                          )})}
                         </div>
                       )}
+
                       <div className="text-right text-brand-500 font-bold mt-2">Total: {prod.price * prod.quantity} DA</div>
                 </div>
               </div>
-                ))}
+                  )
+                })}
               </div>}
 
               {/* Product Attributes Selection */}
-              {attributes && Object.keys(attributes).length > 0 && (
+            {attributes && attributes.length > 0 && (
                 <div className="space-y-4 flex items-start gap-8 flex-wrap">
-                  {Object.entries(attributes).map(([attrName, attrValues]) => (
-                    <div key={attrName} className="space-y-2">
+                {attributes.map(attr => (
+                  <div key={attr.name} className="space-y-2">
                       <label className="block text-sm font-medium text-gray-700 capitalize">
-                        {attrName} <span className="text-red-500">*</span>
+                      {attr.name} <span className="text-red-500">*</span>
                       </label>
                       <div className="flex flex-wrap gap-2">
-                        {Object.entries(attrValues).map(([value, stock]) => (
+                      {attr.options.map(option => {
+                        const isSelected =
+                          formData.products[0]?.attributes?.[attr.name] === option.value;
+
+                        return (
                           <button
-                            key={value}
+                            key={option.value}
                             type="button"
-                            onClick={() => handleAttributeChange(attrName, value)}
-                            disabled={stock === 0}
+                            onClick={() => handleAttributeChange(attr.name, option.value)}
+                            disabled={option.stock === 0}
                           className={`px-4 py-2 rounded-lg border-2 transition-all
-                            ${formData.products[0].attributes && formData.products[0].attributes[attrName] === value
+                  ${isSelected
                               ? 'border-brand-500 bg-brand-50 text-brand-700 dark:border-brand-400 dark:bg-brand-900 dark:text-brand-200'
-                                : stock === 0
+                                : option.stock === 0
                                 ? 'border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed dark:border-gray-700 dark:bg-gray-800 dark:text-gray-500'
-                                : 'border-gray-200 bg-white text-gray-700 hover:border-brand-400 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 dark:hover:border-brand-400'}
+                                  : 'border-gray-200 bg-white text-gray-700 hover:border-brand-400 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 dark:hover:border-brand-400'
+                              }
                           `}
                         >
-                          <span style={{ textTransform: 'capitalize' }}>{value}</span>
-                            {stock === 0 && (
+                            <span className="capitalize">{option.value}</span>
+                            {option.stock === 0 && (
                               <span className="ml-2 text-xs text-red-500">(Out of Stock)</span>
                             )}
                           </button>
-                        ))}
+                        );
+                      })}
                       </div>
                     </div>
                   ))}
                 </div>
               )}
+
 
               {attributeError && (
                 <div className="text-red-500 text-sm mt-2">

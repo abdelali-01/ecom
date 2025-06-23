@@ -9,6 +9,7 @@ import { fetchWilayas } from '@/store/wilayas/wilayaHandler';
 import { updateOrder } from '@/store/orders/orderHandler';
 import { Order } from '@/store/orders/orderSlice';
 import { TrashIcon } from '@heroicons/react/24/outline';
+import { Attribute } from './ProductModal';
 
 interface OrderProduct {
     id: number;
@@ -50,7 +51,7 @@ interface PackInfo {
     discount?: number;
     description?: string;
     quantity: number;
-    products: any[];
+    products: unknown[];
 }
 
 interface OrderWithPack extends Order {
@@ -61,8 +62,29 @@ interface OrderWithPack extends Order {
 export default function OrderModal({ closeModal, order }: { closeModal: () => void, order: OrderWithPack }) {
     const dispatch = useDispatch<AppDispatch>();
     const { wilayas } = useSelector((state: RootState) => state.wilayas);
+    const allProducts = useSelector((state: RootState) => state.products.products);
 
     console.log(order)
+
+    // Function to calculate correct price based on attributes
+    const calculateProductPrice = (productId: number, attributes: Record<string, string> | unknown[], basePrice: number) => {
+        const product = allProducts?.find(p => p.id === productId);
+        if (!product || !product.attributes) return basePrice;
+
+        // If product has attributes, find the highest price among all options
+        let highestPrice = basePrice;
+        
+        product.attributes.forEach(attr => {
+            attr.options.forEach(option => {
+                if (option.price > highestPrice) {
+                    highestPrice = option.price;
+                }
+            });
+        });
+        
+        return highestPrice;
+    };
+
 
     // Sync formData with order
     const [formData, setFormData] = useState<OrderDetails>({
@@ -103,6 +125,29 @@ export default function OrderModal({ closeModal, order }: { closeModal: () => vo
         }
     }, [formData.wilaya, wilayas]);
 
+    // Recalculate prices when allProducts are loaded
+    useEffect(() => {
+        if (allProducts && allProducts.length > 0) {
+            const productsWithCorrectPrices = formData.products.map((p) => {
+                const calculatedPrice = calculateProductPrice(
+                    p.productId,
+                    p.attributes,
+                    p.price
+                );
+                
+                return {
+                    ...p,
+                    price: calculatedPrice,
+                };
+            });
+
+            setFormData(prev => ({
+                ...prev,
+                products: productsWithCorrectPrices,
+            }));
+        }
+    }, [allProducts]);
+
     // Update order field
     const handleChange = <K extends keyof OrderDetails>(field: K, value: OrderDetails[K]) => {
         setFormData(prev => ({
@@ -119,13 +164,25 @@ export default function OrderModal({ closeModal, order }: { closeModal: () => vo
         }));
     };
 
-    // Update product attribute in order
+    // Update product attribute in order with price calculation
     const handleProductAttrChange = (prodIdx: number, attr: string, value: string) => {
+        const product = allProducts?.find(p => p.id === formData.products[prodIdx].productId);
+        if (!product || !product.attributes) return;
+
+        const attribute = product.attributes.find(a => a.name === attr);
+        if (!attribute) return;
+
+        const option = attribute.options.find(o => o.value === value);
+        if (!option) return;
+
+        const newPrice = option.price > 0 ? option.price : product.price || 0;
+
         setFormData(prev => ({
             ...prev,
             products: prev.products.map((p, i) => i === prodIdx ? {
                 ...p,
-                attributes: { ...p.attributes, [attr]: value }
+                attributes: { ...p.attributes, [attr]: value },
+                price: newPrice
             } : p)
         }));
     };
@@ -189,7 +246,9 @@ export default function OrderModal({ closeModal, order }: { closeModal: () => vo
                         </div>
                     ): null}
                     {/* Products Info */}
-                    {formData.products && formData.products.map((prod, idx) => (
+                    {formData.products && formData.products.map((prod, idx) => {
+                        const product = allProducts?.find(p => p.id === prod.productId);
+                        return (
                         <div key={prod.id + '-' + idx} className={`flex flex-col sm:flex-row items-start gap-4 mb-4 pb-4 border-b border-gray-200 dark:border-white/[0.05] ${order.is_pack ? 'bg-gray-50 dark:bg-gray-900 rounded-lg p-2 shadow-sm' : ''}`} style={order.is_pack ? { minHeight: 60, fontSize: '0.95em' } : {}}>
                             <div className='w-16 h-16 relative rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800'>
                                 {prod.image && (
@@ -235,8 +294,32 @@ export default function OrderModal({ closeModal, order }: { closeModal: () => vo
                                         )}
                                     </div>
                                 </div>
-                                {/* Attributes */}
-                                {prod?.product_attr && typeof prod.product_attr === 'object' && prod.product_attr !== null && Object.keys(prod.product_attr).length > 0 && (
+                                {/* New Attributes Structure */}
+                                {product?.attributes && product.attributes.length > 0 && (
+                                    <div className="mt-2">
+                                        <span className='text-xs font-medium text-gray-700 dark:text-gray-300'>Attributes:</span>
+                                        <div className="flex flex-wrap gap-2 mt-1">
+                                            {product.attributes.map((attr, attrIdx) => (
+                                                <div key={attrIdx} className="mr-2">
+                                                    <span className="capitalize text-xs font-semibold dark:text-white">{attr.name}:</span>
+                                                    {attr.options.map((option, optIdx) => (
+                                                        <button
+                                                            key={optIdx}
+                                                            type="button"
+                                                            onClick={() => handleProductAttrChange(idx, attr.name, option.value)}
+                                                            disabled={Number(option.stock) === 0 || (!order.is_pack && prod.attributes?.[attr.name] === option.value)}
+                                                            className={`ml-2 px-2 py-0.5 rounded-md border text-xs dark:text-white ${prod.attributes?.[attr.name] === option.value ? 'bg-brand-500 text-white' : 'bg-white dark:bg-gray-900'} ${Number(option.stock) === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                                        >
+                                                            {option.value} ({option.price} DA)
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                                {/* Legacy product_attr support */}
+                                {!product?.attributes && prod?.product_attr && typeof prod.product_attr === 'object' && prod.product_attr !== null && Object.keys(prod.product_attr).length > 0 && (
                                     <div className="mt-2">
                                         <span className='text-xs font-medium text-gray-700 dark:text-gray-300'>Attributes:</span>
                                         <div className="flex flex-wrap gap-2 mt-1">
@@ -261,7 +344,7 @@ export default function OrderModal({ closeModal, order }: { closeModal: () => vo
                                 )}
                             </div>
                         </div>
-                    ))}
+                    )})}
 
                     {/* Client Info */}
                     <div className='grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4 mb-6'>

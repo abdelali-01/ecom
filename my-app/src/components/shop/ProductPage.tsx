@@ -47,6 +47,7 @@ const ProductPage = ({ product }: { product: Product }) => {
         ? Math.round(((product.prevPrice - product.price) / product.prevPrice) * 100)
         : 0;
 
+    const [price , setPrice] = useState(product.price);
     return (
         <div className="container mx-auto px-4 py-16">
             <div className="flex flex-col lg:flex-row  gap-12">
@@ -143,7 +144,7 @@ const ProductPage = ({ product }: { product: Product }) => {
                     <div className="rounded-lg mb-3">
                         <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">{product.name}</h1>
                         <div className="flex items-center gap-3 mb-6">
-                            <span className="text-2xl font-semibold text-blue-600 dark:text-blue-400">{product.price} DA</span>
+                            <span className="text-2xl font-semibold text-blue-600 dark:text-blue-400">{price} DA</span>
                             {product.prevPrice && product.prevPrice > product.price && (
                                 <span className="text-lg text-gray-500 line-through">{product.prevPrice} DA</span>
                             )}
@@ -160,6 +161,7 @@ const ProductPage = ({ product }: { product: Product }) => {
                         productPrice={product.price}
                         attributes={product.attributes}
                         discount={discountCode}
+                        setPrice={setPrice}
                     />
                 </div>
             </div>

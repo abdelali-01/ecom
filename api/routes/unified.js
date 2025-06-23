@@ -48,18 +48,22 @@ router.get("/", async (req, res) => {
       );
 
       // Initialize attributes object
-      const attributes = {};
-
-      // Process variants to build attributes
+      const attributesMap = {};
       productVariants.forEach((variant) => {
         const variantAttrs = JSON.parse(variant.attributes || "{}");
         Object.entries(variantAttrs).forEach(([key, value]) => {
-          if (!attributes[key]) {
-            attributes[key] = {};
-          }
-          attributes[key][value] = variant.stock;
+          if (!attributesMap[key]) attributesMap[key] = [];
+          attributesMap[key].push({
+            value,
+            price: variant.price,
+            stock: variant.stock,
+          });
         });
       });
+      const attributes = Object.entries(attributesMap).map(([name, options]) => ({
+        name,
+        options,
+      }));
 
       // Normalize image paths
       let images = [];
@@ -163,17 +167,18 @@ router.post("/", upload.array("images", 5), async (req, res) => {
     // If attributes are provided, create variants
     if (attributes) {
       const parsedAttributes = JSON.parse(attributes);
-      for (const [attrName, attrValues] of Object.entries(parsedAttributes)) {
-        for (const [value, stock] of Object.entries(attrValues)) {
+      for (const attr of parsedAttributes) {
+        for (const option of attr.options) {
+          const variantPrice = option.price && option.price > 0 ? option.price : Number(price);
           await pool.query(
             "INSERT INTO variants (product_id, name, sku, price, stock, attributes) VALUES (?, ?, ?, ?, ?, ?)",
             [
               result.insertId,
-              `${name} - ${attrName}:${value}`,
-              `${name}-${attrName}-${value}-${Date.now()}`,
-              price,
-              stock,
-              JSON.stringify({ [attrName]: value }),
+              `${name} - ${attr.name}:${option.value}`,
+              `${name}-${attr.name}-${option.value}-${Date.now()}`,
+              variantPrice,
+              option.stock,
+              JSON.stringify({ [attr.name]: option.value }),
             ]
           );
         }
@@ -322,17 +327,18 @@ router.put("/:id", upload.array("new_images", 5), async (req, res) => {
 
       // Create new variants
       const parsedAttributes = JSON.parse(attributes);
-      for (const [attrName, attrValues] of Object.entries(parsedAttributes)) {
-        for (const [value, stock] of Object.entries(attrValues)) {
+      for (const attr of parsedAttributes) {
+        for (const option of attr.options) {
+          const variantPrice = option.price && option.price > 0 ? option.price : Number(price);
           await pool.query(
             "INSERT INTO variants (product_id, name, sku, price, stock, attributes) VALUES (?, ?, ?, ?, ?, ?)",
             [
               req.params.id,
-              `${name} - ${attrName}:${value}`,
-              `${name}-${attrName}-${value}-${Date.now()}`,
-              price,
-              stock,
-              JSON.stringify({ [attrName]: value }),
+              `${name} - ${attr.name}:${option.value}`,
+              `${name}-${attr.name}-${option.value}-${Date.now()}`,
+              variantPrice,
+              option.stock,
+              JSON.stringify({ [attr.name]: option.value }),
             ]
           );
         }

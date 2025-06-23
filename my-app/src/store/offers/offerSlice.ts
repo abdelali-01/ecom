@@ -5,6 +5,7 @@ export interface Product {
     name: string;
     price: number;
     quantity: number;
+    attributes?: { [key: string]: string };
 }
 
 export interface Pack {

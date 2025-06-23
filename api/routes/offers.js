@@ -20,7 +20,7 @@ router.get("/packs", async (req, res) => {
       packs.map(async (pack) => {
         const [products] = await pool.query(
           `
-                SELECT p.*, pp.quantity 
+                SELECT p.*, pp.quantity, pp.attributes 
                 FROM products p 
                 JOIN pack_products pp ON p.id = pp.product_id 
                 WHERE pp.pack_id = ?
@@ -39,8 +39,8 @@ router.get("/packs", async (req, res) => {
           }
         }
 
-        // ✅ Safely parse product.images
-        const formattedProducts = products.map((product) => {
+        // ✅ Safely parse product.images and calculate correct price based on attributes
+        const formattedProducts = await Promise.all(products.map(async (product) => {
           let productImages = [];
           if (product.images) {
             try {
@@ -51,15 +51,51 @@ router.get("/packs", async (req, res) => {
             }
           }
 
+          // Parse attributes
+          const selectedAttributes = product.attributes ? 
+            (typeof product.attributes === 'string' ? JSON.parse(product.attributes) : product.attributes) : 
+            {};
+
+          // Calculate price based on selected attributes
+          let finalPrice = Number(product.price); // Start with base price
+
+          if (Object.keys(selectedAttributes).length > 0) {
+            // Fetch variants for this product to get the correct price
+            const [variants] = await pool.query(
+              "SELECT attributes, price FROM variants WHERE product_id = ?",
+              [product.id]
+            );
+
+            // Find the variant that matches the selected attributes
+            for (const variant of variants) {
+              const variantAttributes = variant.attributes ? 
+                (typeof variant.attributes === 'string' ? JSON.parse(variant.attributes) : variant.attributes) : 
+                {};
+
+              // Check if this variant matches the selected attributes
+              const attributesMatch = Object.keys(selectedAttributes).every(
+                key => variantAttributes[key] === selectedAttributes[key]
+              );
+
+              if (attributesMatch) {
+                finalPrice = Number(variant.price);
+                break;
+              }
+            }
+          }
+
           return {
             id: product.id,
             name: product.name,
-            price: product.price,
+            price: finalPrice,
+            basePrice : product.price,
             quantity: product.quantity,
+            attributes: product.attributes ? typeof product.attributes === 'string' ? JSON.parse(product.attributes) : product.attributes :{},
             image: productImages[0] || null, // use the first image or null
           };
-        });
+        }));
 
+        
         return {
           ...pack,
           images: packImages,
@@ -106,8 +142,8 @@ router.post("/packs", upload.array("images", 5), async (req, res) => {
       const parsedProducts = JSON.parse(products);
       for (const product of parsedProducts) {
         await connection.query(
-          "INSERT INTO pack_products (pack_id, product_id, quantity) VALUES (?, ?, ?)",
-          [result.insertId, product.id, product.quantity]
+          "INSERT INTO pack_products (pack_id, product_id, quantity, attributes) VALUES (?, ?, ?, ?)",
+          [result.insertId, product.id, product.quantity, JSON.stringify(product.attributes || {})]
         );
       }
 
@@ -143,11 +179,12 @@ router.put("/packs/:id", upload.array("images", 5), async (req, res) => {
   try {
     const { name, description, price, discount, products, existing_images } =
       req.body;
+    const packId = req.params.id;
 
     // Get existing pack images
     const [existingPack] = await pool.query(
       "SELECT images FROM packs WHERE id = ?",
-      [req.params.id]
+      [packId]
     );
 
     let images = [];
@@ -199,27 +236,25 @@ router.put("/packs/:id", upload.array("images", 5), async (req, res) => {
           Number(price),
           Number(discount),
           JSON.stringify(updatedImages),
-          req.params.id,
+          packId,
         ]
       );
 
-      // Update pack products
-      await connection.query("DELETE FROM pack_products WHERE pack_id = ?", [
-        req.params.id,
-      ]);
-
+      // Remove existing pack products and re-insert
+      await connection.query("DELETE FROM pack_products WHERE pack_id = ?", [packId]);
+      
       const parsedProducts = JSON.parse(products);
       for (const product of parsedProducts) {
         await connection.query(
-          "INSERT INTO pack_products (pack_id, product_id, quantity) VALUES (?, ?, ?)",
-          [req.params.id, product.id, product.quantity]
+          "INSERT INTO pack_products (pack_id, product_id, quantity, attributes) VALUES (?, ?, ?, ?)",
+          [packId, product.id, product.quantity, JSON.stringify(product.attributes || {})]
         );
       }
 
       await connection.commit();
 
-      res.json({
-        id: req.params.id,
+      res.status(200).json({
+        id: packId,
         name,
         description,
         price,
@@ -234,7 +269,7 @@ router.put("/packs/:id", upload.array("images", 5), async (req, res) => {
       connection.release();
     }
   } catch (error) {
-    // If there's an error, delete any newly uploaded files
+    // If there's an error, delete any uploaded files
     if (req.files) {
       await Promise.all(req.files.map((file) => fs.unlink(file.path)));
     }

@@ -1,5 +1,5 @@
 'use client';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '@/store/store';
 import Button from '../ui/button/Button';
@@ -9,13 +9,19 @@ import TextArea from '../form/input/TextArea';
 import Image from 'next/image';
 import Loader from '../ui/load/Loader';
 import { fetchProducts } from '@/store/products/productHandler';
-import { Pack , Product} from '@/store/offers/offerSlice';
+import { Pack, Product } from '@/store/offers/offerSlice';
 import { addPack, updatePack } from '@/store/offers/offersHandler';
-import { Product as mainProduct} from './ProductModal';
+import { Product as MainProduct, Attribute } from './ProductModal';
 
-interface ProductWithImages extends Product {
-    images?: string[];
-}
+// Function to filter attributes that have options with prices different from the base price
+const filterAttributesWithDifferentPrices = (attributes: Attribute[] | undefined, basePrice: number): Attribute[] => {
+    console.log('attribute from filter' , attributes)
+    if (!attributes || !Array.isArray(attributes)) return [];
+    // Show an attribute if AT LEAST ONE of its options has a price different from the base price.
+    return attributes.filter(attr =>
+        attr.options.some(option => Number(option.price) !== Number(basePrice))
+    );
+};
 
 interface PackModalProps {
     closeModal: () => void;
@@ -34,32 +40,103 @@ export default function PackModal({ closeModal, selectedItem }: PackModalProps) 
         images: []
     });
 
+    // State to track selected attributes for each product
+    const [selectedAttributes, setSelectedAttributes] = useState<{ [productId: number]: { [attrName: string]: string } }>({});
+    console.log(selectedItem);
+    
+    // Initialize selected attributes when editing an existing pack
     useEffect(() => {
-        const totalProductsPrice = pack.products.reduce((sum, product) => sum + Number(product.price), 0);
-        if (totalProductsPrice === 0 || pack.price === 0) return;
-        const discount = ((totalProductsPrice - pack.price) / totalProductsPrice) * 100;
-        setPack(prev => ({...prev , discount : Math.round(discount)}));
-    }, [pack.price, pack.products])
+        if (selectedItem && selectedItem.products) {
+            console.log('Initializing attributes for selected pack:', selectedItem);
+            const initialAttributes: { [productId: number]: { [attrName: string]: string } } = {};
+            selectedItem.products.forEach(product => {
+                if (product.attributes) {
+                    // Handle both string and object formats for attributes
+                    const attrs = typeof product.attributes === 'string' 
+                        ? JSON.parse(product.attributes) 
+                        : product.attributes;
+                    initialAttributes[product.id] = attrs;
+                    console.log(`Product ${product.id} attributes:`, attrs);
+                }
+            });
+            setSelectedAttributes(initialAttributes);
+        }
+    }, [selectedItem]);
 
-    const handleProductToggle = (product: Product) => {
+    const totalProductsPrice = useMemo(() => {
+        return pack.products.reduce((sum, productInPack) => {
+            const productData = products?.find(p => p.id === productInPack.id);
+            let finalPrice = Number(productInPack.price); // Start with the base price, ensure it's a number
+
+            if (productData?.attributes) {
+                const selectedAttrs = selectedAttributes[productInPack.id];
+                if (selectedAttrs) {
+                    Object.entries(selectedAttrs).forEach(([attrName, attrValue]) => {
+                        const attribute = productData.attributes?.find(a => a.name === attrName);
+                        const option = attribute?.options.find(o => o.value === attrValue);
+                        if (option && option.price > 0) {
+                            finalPrice = Number(option.price); // Use variant price, ensure it's a number
+                        }
+                    });
+                }
+            }
+            return sum + finalPrice;
+        }, 0);
+    }, [pack.products, selectedAttributes, products]);
+
+
+    useEffect(() => {
+        if (totalProductsPrice > 0 && pack.price > 0) {
+            const discount = ((totalProductsPrice - Number(pack.price)) / totalProductsPrice) * 100;
+            setPack(prev => ({ ...prev, discount: Math.round(discount) }));
+        } else {
+            setPack(prev => ({ ...prev, discount: 0 }));
+        }
+    }, [pack.price, totalProductsPrice]);
+
+    const handleProductToggle = (product: MainProduct) => {
         setPack(prev => {
             const isProductSelected = prev.products.some(p => p.id === product.id);
             if (isProductSelected) {
+                // Remove product and its selected attributes
+                setSelectedAttributes(prevAttrs => {
+                    const newAttrs = { ...prevAttrs };
+                    delete newAttrs[product.id];
+                    return newAttrs;
+                });
+
                 return {
                     ...prev,
                     products: prev.products.filter(p => p.id !== product.id)
                 };
             } else {
+                // Add product
+                const newProduct: Product = {
+                    id: product.id,
+                    name: product.name,
+                    price: product.price,
+                    quantity: 1,
+                };
                 return {
                     ...prev,
-                    products: [...prev.products, {
-                        id: product.id,
-                        name: product.name,
-                        price: product.price,
-                        quantity: 1
-                    }]
+                    products: [...prev.products, newProduct]
                 };
             }
+        });
+    };
+
+    const handleAttributeChange = (productId: number, attrName: string, value: string) => {
+        console.log(`Changing attribute for product ${productId}: ${attrName} = ${value}`);
+        setSelectedAttributes(prev => {
+            const newAttrs = {
+                ...prev,
+                [productId]: {
+                    ...(prev[productId] || {}),
+                    [attrName]: value
+                }
+            };
+            console.log('Updated selected attributes:', newAttrs);
+            return newAttrs;
         });
     };
 
@@ -68,11 +145,11 @@ export default function PackModal({ closeModal, selectedItem }: PackModalProps) 
         if (files) {
             const newImages: string[] = [];
             const processFile = (file: File) => {
-                return new Promise((resolve) => {
+                return new Promise<void>((resolve) => {
                     const reader = new FileReader();
                     reader.onloadend = () => {
                         newImages.push(reader.result as string);
-                        resolve(null);
+                        resolve();
                     };
                     reader.readAsDataURL(file);
                 });
@@ -94,14 +171,22 @@ export default function PackModal({ closeModal, selectedItem }: PackModalProps) 
         }));
     };
 
-    const handleSave = (e) => {
+    const handleSave = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        // Here you would typically make an API call to save the pack
-        console.log("Saving pack:", pack);
-        if (selectedItem) {
-            dispatch(updatePack(pack.id, pack))
+        console.log('Saving pack with selected attributes:', selectedAttributes);
+        const packToSave = {
+            ...pack,
+            products: pack.products.map(p => ({
+                ...p,
+                attributes: selectedAttributes[p.id] || {}
+            }))
+        };
+        console.log('Pack to save:', packToSave);
+
+        if (selectedItem && packToSave.id) {
+            dispatch(updatePack(packToSave.id, packToSave));
         } else {
-            dispatch(addPack(pack))
+            dispatch(addPack(packToSave));
         }
         closeModal();
     };
@@ -194,20 +279,23 @@ export default function PackModal({ closeModal, selectedItem }: PackModalProps) 
                         </div>
 
                         <div className='flex items-center gap-4 max-h-[300px] overflow-x-auto p-2'>
-                            {products?.map((product : ProductWithImages | mainProduct) => {
+                            {products?.map((product: MainProduct) => {
                                 const isSelected = pack.products.some(p => p.id === product.id);
+                                const filteredAttributes = filterAttributesWithDifferentPrices(product.attributes, Number(product.basePrice));
+                                const hasAttributesWithDifferentPrices = filteredAttributes.length > 0;
+
                                 return (
                                     <div
                                         key={product.id}
                                         className={`relative min-w-[160px] group cursor-pointer rounded-lg border transition-all duration-200 ${isSelected
-                                                ? 'border-success-500 bg-success-50 dark:bg-success-500/10'
-                                                : 'border-gray-200 dark:border-white/[0.05] hover:border-primary-500'
+                                            ? 'border-success-500 bg-success-50 dark:bg-success-500/10'
+                                            : 'border-gray-200 dark:border-white/[0.05] hover:border-primary-500'
                                             }`}
                                         onClick={() => handleProductToggle(product)}
                                     >
                                         <div className='aspect-square relative'>
                                             <Image
-                                                src={`${process.env.NEXT_PUBLIC_SERVER}/${product.images?.[0]}` || '/placeholder.png'}
+                                                src={product.images?.[0] ? `${process.env.NEXT_PUBLIC_SERVER}/${product.images[0]}` : '/placeholder.png'}
                                                 alt={product.name}
                                                 fill
                                                 className='object-cover rounded-t-lg'
@@ -223,6 +311,11 @@ export default function PackModal({ closeModal, selectedItem }: PackModalProps) 
                                                     Selected
                                                 </div>
                                             )}
+                                            {hasAttributesWithDifferentPrices && (
+                                                <div className='absolute top-2 right-2 bg-warning-500 text-white px-2 py-1 rounded-full text-xs font-medium'>
+                                                    Variants
+                                                </div>
+                                            )}
                                         </div>
                                         <div className='p-3'>
                                             <div className='font-medium text-gray-800 dark:text-white truncate'>
@@ -231,6 +324,11 @@ export default function PackModal({ closeModal, selectedItem }: PackModalProps) 
                                             <div className='text-sm text-gray-500 dark:text-gray-400'>
                                                 {product.price} DA
                                             </div>
+                                            {hasAttributesWithDifferentPrices && (
+                                                <div className='text-xs text-warning-600 dark:text-warning-400 mt-1'>
+                                                    Has price variants
+                                                </div>
+                                            )}
                                         </div>
                                         <div className='absolute top-2 right-2'>
                                             <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${isSelected
@@ -250,7 +348,65 @@ export default function PackModal({ closeModal, selectedItem }: PackModalProps) 
                         </div>
                     </div>
 
-                    <div className="border border-gray-200 dark:border-white/[0.05] my-5"></div>
+                    {/* Selected Products with Attributes */}
+                    {pack.products.length > 0 && (
+                        <div className="border-t border-gray-200 dark:border-white/[0.05] my-5 pt-5">
+                            {pack.products.map(selectedProduct => {
+                                const productData = products?.find(p => p.id === selectedProduct.id);
+                                const filteredAttributes = filterAttributesWithDifferentPrices(productData?.attributes, Number(selectedProduct.basePrice));
+
+                                if (filteredAttributes.length === 0) return null;
+
+                                return (
+                                    <div key={selectedProduct.id} className="mb-4 p-4 border border-gray-200 dark:border-white/[0.05] rounded-lg">
+                                        <div className="flex items-center gap-3 mb-3">
+                                            <Image
+                                                src={productData?.images?.[0] ? `${process.env.NEXT_PUBLIC_SERVER}/${productData.images[0]}` : '/placeholder.png'}
+                                                alt={selectedProduct.name}
+                                                width={50}
+                                                height={50}
+                                                className="rounded-lg object-cover"
+                                            />
+                                            <div>
+                                                <div className="font-medium text-gray-800 dark:text-white">{selectedProduct.name}</div>
+                                                <div className="text-sm text-gray-500 dark:text-gray-400">{selectedProduct.price} DA</div>
+                                            </div>
+                                        </div>
+
+                                        <div className="space-y-3">
+                                            <div className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                Select Variants:
+                                            </div>
+                                            {filteredAttributes.map(attr => (
+                                                <div key={attr.name} className="space-y-2">
+                                                    <Label className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                                                        {attr.name}
+                                                    </Label>
+                                                    <div className="flex flex-wrap gap-2">
+                                                        {attr.options.map(option => (
+                                                            <button
+                                                                key={option.value}
+                                                                type="button"
+                                                                onClick={() => handleAttributeChange(selectedProduct.id, attr.name, option.value)}
+                                                                className={`px-3 py-1 text-sm rounded-full border transition-colors ${selectedAttributes[selectedProduct.id]?.[attr.name] === option.value
+                                                                    ? 'bg-primary text-white border-primary'
+                                                                    : 'bg-gray-50 text-gray-700 border-gray-300 hover:bg-gray-100 dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600 dark:hover:bg-gray-600'
+                                                                    }`}
+                                                            >
+                                                                {option.value} ({option.price} DA)
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
+
+                    <div className="border-t border-gray-200 dark:border-white/[0.05] my-5"></div>
 
                     <div className='space-y-4'>
                         <div className='grid grid-cols-1 md:grid-cols-2 gap-5'>
@@ -267,7 +423,7 @@ export default function PackModal({ closeModal, selectedItem }: PackModalProps) 
                                 <Label className='font-semibold text-gray-400'>Total Products Price</Label>
                                 <div className='p-3 bg-gray-50 dark:bg-white/[0.02] rounded-lg'>
                                     <div className='text-lg font-semibold text-gray-800 dark:text-white'>
-                                        {pack.products.reduce((sum, product) => sum + Number(product.price), 0)} DA
+                                        {totalProductsPrice} DA
                                     </div>
                                 </div>
                             </div>
@@ -284,10 +440,7 @@ export default function PackModal({ closeModal, selectedItem }: PackModalProps) 
                                 <div className='text-right'>
                                     <div className='text-sm text-gray-500 dark:text-gray-400'>Your Client Save</div>
                                     <div className='text-lg font-semibold text-success-500'>
-                                        {(() => {
-                                            const totalProductsPrice = pack.products.reduce((sum, product) => sum + Number(product.price), 0);
-                                            return `${totalProductsPrice - pack.price} DA`;
-                                        })()}
+                                        {totalProductsPrice - Number(pack.price)} DA
                                     </div>
                                 </div>
                             </div>
@@ -300,7 +453,7 @@ export default function PackModal({ closeModal, selectedItem }: PackModalProps) 
                 <Button size="sm" variant="outline" onClick={closeModal}>
                     Cancel
                 </Button>
-                <Button size="sm">
+                <Button type="submit" size="sm">
                     {selectedItem ? 'Save Changes' : 'Create Pack'}
                 </Button>
             </div>

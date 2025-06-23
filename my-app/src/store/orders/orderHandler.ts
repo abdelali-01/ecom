@@ -34,11 +34,7 @@ export const fetchOrders = () => async (dispatch: AppDispatch) => {
 // Create new order
 export const createOrder = (order: Order) => async (dispatch: AppDispatch) => {
     try {
-        const res = await axios.post(ordersApi, order, { withCredentials: true });
-
-        if (res) {
-            dispatch(setSuccessAlert('Order has been placed successfully'));
-        }
+        await axios.post(ordersApi, order, { withCredentials: true });
     } catch (error) {
         console.error('Error creating order:', error);
         const axiosError = error as AxiosError;

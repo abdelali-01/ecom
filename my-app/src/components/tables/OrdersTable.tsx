@@ -31,6 +31,34 @@ export default function OrdersTable() {
 
     const [selectedFilter, setSelectedFilter] = useState<'daily' | 'weekly' | 'monthly' | 'all'>('daily');
 
+    // Function to calculate correct total price based on attributes
+    const calculateOrderTotal = (order: Order) => {
+        let total = 0;
+        order.products.forEach(product => {
+            const productData = products?.find(p => p.id === product.productId);
+            if (productData && productData.attributes && productData.attributes.length > 0) {
+                // Find the highest price among all attribute options
+                let highestPrice = product.price;
+                productData.attributes.forEach(attr => {
+                    attr.options.forEach(option => {
+                        if (option.price > highestPrice) {
+                            highestPrice = option.price;
+                        }
+                    });
+                });
+                total += highestPrice * (product.quantity || 1);
+            } else {
+                total += product.price * (product.quantity || 1);
+            }
+        });
+
+        // Subtract discount if available
+        if (order.discountValue) {
+            total -= order.discountValue;
+        }
+
+        return total;
+    };
 
     if (!orders || !products) return <Loader />;
     else if (orders.length === 0) return <div className='text-center text-gray-500 dark:text-gray-400'>No orders found</div>;
@@ -130,16 +158,17 @@ export default function OrdersTable() {
                                 >
                                     <TableCell className="px-4 py-3 text-gray-500 text-start font-semibold dark:text-gray-400">
                                         <div className='flex flex-col gap-2'>
-                                            {order.is_pack  ? <div className='flex items-center gap-3'>
-                                                {order.pack.image && <Image
-                                                    src={`${process.env.NEXT_PUBLIC_SERVER}/${order.pack.image}`}
-                                                    alt={order.pack.name}
-                                                    width={60}
-                                                    height={60}
-                                                    className='object-cover rounded-md'
-                                                />}
-                                                {order.pack.name}
-                                            </div> :
+                                            {(order as any).is_pack && (order as any).pack ? 
+                                                <div className='flex items-center gap-3'>
+                                                    {(order as any).pack.image && <Image
+                                                        src={`${process.env.NEXT_PUBLIC_SERVER}/${(order as any).pack.image}`}
+                                                        alt={(order as any).pack.name}
+                                                        width={60}
+                                                        height={60}
+                                                        className='object-cover rounded-md'
+                                                    />}
+                                                    {(order as any).pack.name}
+                                                </div> :
                                                 order.products.map(product => (
                                                     <div key={product.id + product.name} className='flex items-center gap-3'>
                                                         <Image
@@ -168,7 +197,7 @@ export default function OrdersTable() {
                                         {formatDateToISOWithTime(order.created_at || '')}
                                     </TableCell>
                                     <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                                        {order.total} DA
+                                        {calculateOrderTotal(order)} DA
                                     </TableCell>
                                     <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
                                         <Badge

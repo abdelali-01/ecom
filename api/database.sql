@@ -61,6 +61,7 @@ CREATE TABLE IF NOT EXISTS pack_products (
     pack_id INT,
     product_id INT,
     quantity INT DEFAULT 1,
+    attributes JSON,
     PRIMARY KEY (pack_id, product_id),
     FOREIGN KEY (pack_id) REFERENCES packs(id) ON DELETE CASCADE,
     FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
