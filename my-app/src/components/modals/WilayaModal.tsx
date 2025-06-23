@@ -17,7 +17,7 @@ interface WilayaModalProps {
 export default function WilayaModal({ closeModal, selectedItem }: WilayaModalProps) {
     const dispatch = useDispatch<AppDispatch>();
     
-    const prices = JSON.parse(selectedItem.shipping_prices);
+    const prices =typeof selectedItem.shipping_prices === 'string' ? JSON.parse(selectedItem.shipping_prices) : selectedItem.shipping_prices;
     const [wilaya, setWilaya] = useState({
         shipping_prices: {
             home: prices.home,

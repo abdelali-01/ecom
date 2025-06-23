@@ -74,8 +74,8 @@ export default function WilayasTable() {
 
                         <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
                             {wilayas.map((wilaya: Wilaya , index : number) => {
-                                const prices = JSON.parse(wilaya.shipping_prices);
-  return (
+                                const prices =typeof wilaya.shipping_prices === 'string' ?  JSON.parse(wilaya.shipping_prices) : wilaya.shipping_prices;
+                            return (
                                     <TableRow key={wilaya.id} className="hover:bg-gray-200 dark:hover:bg-white/[0.05] transition-all duration-200">
 
                                         <TableCell className="px-4 py-3 text-gray-500 text-start font-semibold dark:text-gray-400">
