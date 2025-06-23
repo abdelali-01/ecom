@@ -354,7 +354,7 @@ router.put("/:id", upload.array("new_images", 5), async (req, res) => {
       quantity,
       category_id,
       images: updatedImages,
-      show_on_homepage: show_on_homepage == "true" ? 1 : 0,
+      show_on_homepage: (show_on_homepage == "true" || show_on_homepage == 1) ? 1 : 0,
       presentation,
       attributes: attributes ? typeof attributes === 'string' ? JSON.parse(attributes) : attributes : {},
     });
