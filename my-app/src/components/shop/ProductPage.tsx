@@ -16,8 +16,22 @@ const ProductPage = ({ product }: { product: Product }) => {
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const [promoCode, setPromoCode] = useState("");
     const [discountCode, setDiscountCode] = useState<PromoCode | null>(null);
-    const { t } = useTranslation();
+    const [feedback , setFeedback] = useState('');
+    const { t , i18n} = useTranslation();
     console.log(discountCode);
+
+    const content = {
+        promoApplied: {
+            en: "Promo code applied!",
+            fr: "Code promo appliqué !",
+            ar: "تم تطبيق رمز الخصم!"
+          },
+          invalidPromo: {
+            en: "Invalid or expired promo code.",
+            fr: "Code promo invalide ou expiré.",
+            ar: "رمز الخصم غير صالح أو منتهي الصلاحية."
+          },
+    }
 
     const dispatch = useDispatch<AppDispatch>()
     const handlePromoCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -31,8 +45,10 @@ const ProductPage = ({ product }: { product: Product }) => {
 
         if (res?.discount) {
             setDiscountCode({ ...res, code: promoCode });
+            setFeedback(content.promoApplied[i18n.language]);
+        }else{
+            setFeedback(content.invalidPromo[i18n.language]);
         }
-
         setPromoCode('');
     };
 
@@ -135,6 +151,9 @@ const ProductPage = ({ product }: { product: Product }) => {
                                 {t('promoCode.apply')}
                             </Button>
                         </div>
+                        {feedback && (
+                <div className={`mt-2 text-sm ${discountCode ? 'text-green-600' : 'text-red-500'}`}>{feedback}</div>
+              )}
                     </form>
 
                 </div>

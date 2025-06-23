@@ -75,7 +75,7 @@ export default function WilayaModal({ closeModal, selectedItem }: WilayaModalPro
                                 required
                             />
                         </div>
-                        <div className="col-span-2">
+                        <div className="col-span-1 md:col-span-2">
                             <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-white/[0.02] rounded-lg">
                                 <div>
                                     <div className="text-sm text-gray-500 dark:text-gray-400">Status</div>

@@ -51,7 +51,7 @@ export default function PromoCodeModal({ closeModal, selectedItem }: PromoCodeMo
             <div className='max-h-[60vh] overflow-y-auto'>
                 <div className='border border-gray-200 dark:border-white/[0.05] rounded-lg p-5 mb-5'>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                        <div className='col-span-2'>
+                        <div className='col-span-1 md:col-span-2'>
                             <Label className='font-semibold text-gray-400'>Promo Code</Label>
                             <Input
                                 type="text"
@@ -113,7 +113,7 @@ export default function PromoCodeModal({ closeModal, selectedItem }: PromoCodeMo
                                 }}
                             />
                         </div>
-                        <div className="col-span-2">
+                        <div className="col-span-1 md:col-span-2">
                             <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-white/[0.02] rounded-lg">
                                 <div>
                                     <div className="text-sm text-gray-500 dark:text-gray-400">Status</div>

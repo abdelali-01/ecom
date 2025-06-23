@@ -235,17 +235,13 @@ export const checkCode = (promoCode: string) => async (dispatch: AppDispatch) =>
 
     try {
         const res = await axios.get(`${offersApi}/check/${promoCode}`, { withCredentials: true });
-        console.log(res);
+
         if (res.data.status == 200) {
-            dispatch(setSuccessAlert(`Congrats , You have ${res.data.discount}${res.data.type === "fixed" ? 'DA' : '%'} discount `))
             return res.data
         }
     } catch (error) {
         console.error('Error checking promo code:', error);
         const axiosError = error as AxiosError;
-        dispatch(setError({
-            message: axiosError.response?.data?.message || "Something went wrong!"
-        }));
     } finally {
         dispatch(setLoading(false))
     }

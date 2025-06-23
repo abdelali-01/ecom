@@ -184,7 +184,8 @@
     "submit": "Passer la Commande",
     "processing": "Traitement...",
     "phoneError": "Veuillez entrer un numéro de téléphone valide",
-    "attributesError": "Veuillez sélectionner toutes les options requises pour tous les produits"
+    "attributesError": "Veuillez sélectionner toutes les options requises pour tous les produits",
+    "not_avai": "Pas disponible"
   },
   "common": {
     "loading": "Chargement...",

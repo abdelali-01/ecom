@@ -170,7 +170,8 @@
     "submit": "Place Order",
     "processing": "Processing...",
     "phoneError": "Please enter a valid phone number",
-    "attributesError": "Please select all required attributes for all products"
+    "attributesError": "Please select all required attributes for all products",
+    "not_avai": "Not Available"
   },
   "common": {
     "loading": "Loading...",

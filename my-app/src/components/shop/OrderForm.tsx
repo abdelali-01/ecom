@@ -636,8 +636,8 @@ const ProductOrderForm = ({ products, productId, productPrice, setProductPrice, 
                   >
                     <option value="">{t('orderForm.wilaya')}</option>
                     {wilayas?.map((wilaya) => (
-                      <option key={wilaya.id} value={wilaya.name}>
-                        {wilaya.name}
+                      <option key={wilaya.id} value={wilaya.name} disabled={wilaya.is_active == "0"}>
+                        {wilaya.name}{wilaya.is_active == '0' && <span> ({t('orderForm.not_avai')})</span>}
                       </option>
                     ))}
                 </SelectField>
