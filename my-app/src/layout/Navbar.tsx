@@ -41,7 +41,8 @@ export default function Navbar() {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link href="/" className="flex-shrink-0">
-            <Image src={'/logo.png'} width={60} height={60} alt='bioasis logo' />
+            {/* <Image src={'/logo.png'} width={60} height={60} alt='bioasis logo' /> */}
+            <h3 className="text-xl md:text-3xl font-bold dark:text-white">LOGO</h3>
           </Link>
 
           {/* Desktop Navigation */}

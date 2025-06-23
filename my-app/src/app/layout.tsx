@@ -20,8 +20,8 @@ const elMessiri = El_Messiri({
 
 export const metadata: Metadata = {
     title:
-        "Bioasis",
-    description: "Bioasis store",
+        "Ecommerce store",
+    description: "Standard Ecommerce store",
 };
 
 export default function RootLayout({
@@ -29,7 +29,6 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  
 
   return (
     <html lang="en">

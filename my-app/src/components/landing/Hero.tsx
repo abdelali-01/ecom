@@ -62,16 +62,16 @@ const storeSlides: StoreSlide[] = [
     isStoreSlide: true
   },
   {
-    id: 1,
+    id: 2,
     name: {
-      en: "We offer the finest types of honey",
-      fr: "Nous offrons les meilleures variétés de miel",
-      ar: "نوفر اجود انواع العسل"
+      en: "Shop from Home",
+      fr: "Faites vos achats depuis chez vous",
+      ar: "تسوق في متجرنا من بيتك"
     },
     description: {
-      en: "The best and finest types of honey in our store at special prices",
-      fr: "Les meilleures variétés de miel dans notre boutique à des prix exceptionnels",
-      ar: "افضل و اجود انواع العسل في متجرنا بأسعار مميزة"
+      en: "Enjoy the best shopping experience right from your home",
+      fr: "Profitez de la meilleure expérience d'achat depuis chez vous",
+      ar: "نقدم لك افضل تجربة للتسوق عندنا من بيتك"
     },
     image: "/images/store/2.jpg",
     isStoreSlide: true

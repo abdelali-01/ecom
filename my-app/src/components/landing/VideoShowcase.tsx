@@ -54,7 +54,7 @@ export default function VideoShowcase() {
               ) : (
                 <div className="absolute top-0 left-0 w-full h-full">
                   <Image
-                    src="/images/store/1.jpg"
+                    src="/video-thumbnail.jpg"
                     alt="Video thumbnail"
                     fill
                     className="object-cover"

@@ -2,8 +2,8 @@ import { Metadata } from 'next';
 
 export const metadata: Metadata = {
     title:
-        "Mimstore Dashboard",
-    description: "store managment system",
+        "Ecommerce store dashboard",
+    description: "Ecommerce store dashboard",
 };
 
 export default function DashLayout({

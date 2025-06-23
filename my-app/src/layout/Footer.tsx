@@ -38,7 +38,8 @@ export default function Footer() {
           {/* Logo */}
           <div className="flex items-center">
             <Link href="/" className="text-2xl font-bold text-gray-900 dark:text-white">
-              <Image src={'/logo.png'} width={60} height={60} alt='bioasis logo' />
+              {/* <Image src={'/logo.png'} width={60} height={60} alt='bioasis logo' /> */}
+            <h3 className="text-xl md:text-3xl font-bold dark:text-white">LOGO</h3>
             </Link>
           </div>
 
