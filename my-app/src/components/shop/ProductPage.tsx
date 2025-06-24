@@ -83,13 +83,16 @@ const ProductPage = ({ product }: { product: Product }) => {
                                     {/* Content */}
                                     <div className="relative flex ">
                                         <Image
-                                            src={getImageSrc(product.images[currentImageIndex])}
+                                            src={getImageSrc(product.images[currentImageIndex]) || '/product.png'}
                                             alt={product.name}
                                             className='object-cover rounded-lg w-full'
                                             width={100}
                                             height={100}
                                             unoptimized
                                             quality={100}
+                                            onError={(e) => {
+                                                e.currentTarget.src = '/product.png';
+                                            }}
                                         />
                                     </div>
                                 </motion.div>
@@ -114,7 +117,7 @@ const ProductPage = ({ product }: { product: Product }) => {
                                 return (
                                     <Image
                                         key={index}
-                                        src={getImageSrc(image)}
+                                        src={getImageSrc(image) || '/product.png'}
                                         alt={product.name}
                                         onClick={() => {
                                             setCurrentImageIndex(index);
@@ -124,6 +127,9 @@ const ProductPage = ({ product }: { product: Product }) => {
                                         quality={100}
                                         unoptimized
                                         className={`w-26 h-26 object-cover rounded-xl transition-colors ${index === currentImageIndex ? 'border border-brand-500' : 'opacity-60'}`}
+                                        onError={(e) => {
+                                            e.currentTarget.src = '/product.png';
+                                        }}
                                     />
                                 )
                             })}

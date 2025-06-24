@@ -489,14 +489,17 @@ const ProductOrderForm = ({ products, productId, productPrice, setProductPrice, 
             {(isPack || isCheckout) &&
               <div className="space-y-6">
                 {formData.products?.map((prod, idx) => {
-                  console.log(prod)
                   return (
                   <div key={prod.productId + '-' + idx} className="relative flex flex-col sm:flex-row items-center gap-4 border-b pb-4 mb-4 bg-white dark:bg-gray-800 rounded-xl p-4 shadow group">
                     {isCheckout && <button type="button" onClick={() => handleRemoveProduct(idx)} className="absolute top-3 right-3 text-red-500 hover:text-red-700 bg-white dark:bg-gray-900 rounded-full p-1 shadow z-10">
                       <XMarkIcon className="w-5 h-5" />
                     </button>}
                     <div className="relative w-20 h-20 flex-shrink-0 rounded-lg overflow-hidden shadow">
-                      <Image src={prod.images?.[0] ? `${process.env.NEXT_PUBLIC_SERVER}/${prod.images[0]}` : '/images/placeholder.png'} alt={prod.name || ''} fill className="object-cover" />
+                      {prod?.images[0] && <Image src={`${process.env.NEXT_PUBLIC_SERVER}/${prod?.images[0]}` || '/product.png'} alt={prod.name || ''} fill className="object-cover" 
+                                                          onError={(e) => {
+                                                            e.currentTarget.src = '/product.png';
+                                                        }}
+                      />} 
                     </div>
                     <div className="flex-1 w-full">
                       <div className="flex flex-col mb-2">

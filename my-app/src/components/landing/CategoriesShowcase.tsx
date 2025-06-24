@@ -49,10 +49,13 @@ export default function CategoriesShowcase({ categories }: CategoriesShowcasePro
                             <div className="flex flex-col items-center bg-gray-100 dark:bg-gray-900 rounded-xl shadow hover:shadow-lg p-5 transition hover:scale-105 border border-gray-200 dark:border-gray-800 cursor-pointer">
                                 <div className="relative w-16 h-16 mb-3">
                                     <Image
-                                        src={cat.image ? `${process.env.NEXT_PUBLIC_SERVER}/${cat.image}` : '/cat.png'}
+                                        src={cat.image ? (`${process.env.NEXT_PUBLIC_SERVER}/${cat.image}` || '/category.png') : '/cat.png'}
                                         alt={cat.name}
                                         fill
                                         className="object-cover rounded-full border-2 border-brand-100 dark:border-brand-900 group-hover:border-brand-500"
+                                        onError={(e) => {
+                                            e.currentTarget.src = '/category.png';
+                                        }}
                                     />
                                 </div>
                                 <span className="font-semibold text-gray-900 dark:text-white text-center text-base line-clamp-2">{cat.name}</span>

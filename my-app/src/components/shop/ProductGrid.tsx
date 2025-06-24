@@ -12,11 +12,6 @@ interface ProductGridProps {
   onSortChange: (sort: string) => void;
 }
 
-const getImageSrc = (img: string) => {
-  if (!img) return '/images/placeholder.png';
-  if (img.startsWith('data:image') || img.startsWith('http')) return img;
-  return `${process.env.NEXT_PUBLIC_SERVER}/${img}`;
-};
 
 export default function ProductGrid({ products, sort, onSortChange }: ProductGridProps) {
   const { t } = useTranslation();

@@ -91,13 +91,16 @@ export default function PackPage() {
                 >
                   <div className="relative flex">
                     <Image
-                      src={pack.images && pack.images.length > 0 ? `${process.env.NEXT_PUBLIC_SERVER}/${pack.images[currentImageIndex]}` : "/images/placeholder.png"}
+                      src={`${process.env.NEXT_PUBLIC_SERVER}/${pack?.images[currentImageIndex]}` || '/pack.png'}
                       alt={pack.name}
                       className="object-cover rounded-lg w-full min-h-[340px]"
                       width={600}
                       height={400}
                       unoptimized
                       quality={100}
+                      onError={(e) => {
+                        e.currentTarget.src = '/pack.png';
+                    }}
                     />
                   </div>
                 </motion.div>
@@ -125,7 +128,7 @@ export default function PackPage() {
               {pack.images && pack.images.map((image, index) => (
                 <Image
                   key={index}
-                  src={image ? `${process.env.NEXT_PUBLIC_SERVER}/${image}` : "/images/placeholder.png"}
+                  src={`${process.env.NEXT_PUBLIC_SERVER}/${image}` || "/pack.png"}
                   alt={pack.name}
                   onClick={() => setCurrentImageIndex(index)}
                   width={36}

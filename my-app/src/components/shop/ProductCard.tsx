@@ -42,10 +42,13 @@ export default function ProductCard({ product }: ProductCardProps) {
     <div className="group relative bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden flex flex-col h-full">
       <div className="relative h-56 w-full">
         <Image
-          src={getImageSrc(product.images?.[0])}
+          src={getImageSrc(product.images?.[0]) || '/product.png'}
           alt={product.name}
           fill
           className="object-cover transition-transform duration-300 group-hover:scale-105"
+          onError={(e) => {
+            e.currentTarget.src = '/product.png';
+          }}
         />
         {discountPercent > 0 && (
           <div className="absolute top-4 right-4 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold shadow-lg">

@@ -77,10 +77,13 @@ export default function Packs() {
                             {/* Pack Image */}
                             <div className="relative w-full md:w-1/3 h-64 md:h-auto flex-shrink-0">
                                 <Image
-                                    src={`${process.env.NEXT_PUBLIC_SERVER}/${pack.images[0]}`}
+                                    src={`${process.env.NEXT_PUBLIC_SERVER}/${pack.images[0]}` || '/pack.png'}
                                     alt={pack.name}
                                     fill
                                     className="object-cover transition-transform duration-300 group-hover:scale-105"
+                                    onError={(e) => {
+                                        e.currentTarget.src = '/pack.png';
+                                    }}
                                 />
                                 {pack.discount > 0 && (
                                     <div className="absolute top-4 right-4 bg-red-500 text-white px-4 py-2 rounded-full text-lg font-bold shadow-lg">
@@ -106,10 +109,13 @@ export default function Packs() {
                                             <div key={product.id} className="flex flex-col items-center bg-gray-50 dark:bg-gray-900 rounded-xl p-3 min-w-[90px] max-w-[120px] shadow border border-gray-100 dark:border-gray-800">
                                                 <div className="relative w-14 h-14 mb-2">
                                                     <Image
-                                                        src={product.image ? `${process.env.NEXT_PUBLIC_SERVER}/${product.image}` : '/images/placeholder.png'}
+                                                        src={`${process.env.NEXT_PUBLIC_SERVER}/${product.image}` || '/product.png'}
                                                         alt={product.name}
                                                         fill
                                                         className="object-cover rounded-lg"
+                                                        onError={(e) => {
+                                                            e.currentTarget.src = '/product.png';
+                                                        }}
                                                     />
                                                 </div>
                                                 <span className="text-xs font-semibold text-gray-900 dark:text-white text-center truncate w-full">{product.name}</span>
