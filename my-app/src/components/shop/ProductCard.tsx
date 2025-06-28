@@ -15,11 +15,7 @@ interface ProductCardProps {
 export default function ProductCard({ product }: ProductCardProps) {
   const { t } = useTranslation();
   const isOutOfStock = product.quantity === 0;
-  const getImageSrc = (img: string) => {
-    if (!img) return '/images/placeholder.png';
-    if (img.startsWith('data:image') || img.startsWith('http')) return img;
-    return `${process.env.NEXT_PUBLIC_SERVER}/${img}`;
-  };
+
 
   const discountPercent = product.prevPrice && product.prevPrice > product.price
     ? Math.round(((product.prevPrice - product.price) / product.prevPrice) * 100)
@@ -42,7 +38,7 @@ export default function ProductCard({ product }: ProductCardProps) {
     <div className="group relative bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden flex flex-col h-full">
       <div className="relative h-56 w-full">
         <Image
-          src={getImageSrc(product.images?.[0]) || '/product.png'}
+          src={`${process.env.NEXT_PUBLIC_SERVER}/${product.images?.[0]}` || '/product.png'}
           alt={product.name}
           fill
           className="object-cover transition-transform duration-300 group-hover:scale-105"

@@ -53,7 +53,7 @@ const ProductPage = ({ product }: { product: Product }) => {
     };
 
     const getImageSrc = (img: string) => {
-        if (!img) return '/images/placeholder.png';
+        if (!img) return '/product.png';
         if (img.startsWith('data:image') || img.startsWith('http')) return img;
         return `${process.env.NEXT_PUBLIC_SERVER}/${img}`;
     };
